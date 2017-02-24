@@ -1,2 +1,6 @@
-# reports
-reporting tables
+# FramerJs
+Setup Project for FramerJs
+
+> npm install
+
+> gulp
