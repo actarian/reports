@@ -7,7 +7,6 @@
 <html class="no-js is-modern" lang="en" ng-app="app">
 <!--<![endif]-->
 <head>
-    <base href="/">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
@@ -31,7 +30,7 @@
 </head>
 <body ng-controller="RootCtrl" ng-cloak>
     <div class="page">
-        <ng-view class="navigation">loading...</ng-view>
+        <div ng-controller="ReportCtrl" ng-include="'partials/report.html'">loading...</ng-view>
     </div>
 
     <script type="text/ng-template" id="partial/pagination">

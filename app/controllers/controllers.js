@@ -24,7 +24,7 @@ app.controller('TableCtrl', ['$scope', function ($scope) {
 
 }]);
 
-app.controller('TestCtrl', ['$scope', '$route', '$filter', '$location', '$http', '$q', 'State', 'Utils', 'Appearance', 'DataFilter', 'DataSource', 'Columns', 'Range', 'ChartData', 'colTypes', function ($scope, $route, $filter, $location, $http, $q, State, Utils, Appearance, DataFilter, DataSource, Columns, Range, ChartData, colTypes) {
+app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'State', 'Utils', 'Appearance', 'DataFilter', 'DataSource', 'Columns', 'Range', 'ChartData', 'colTypes', function ($scope, $filter, $location, $http, $q, State, Utils, Appearance, DataFilter, DataSource, Columns, Range, ChartData, colTypes) {
     var state = $scope.state = new State();
 
     var tabs = $scope.tabs = [{
