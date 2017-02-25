@@ -140,100 +140,7 @@ app.constant('colTypes', {
     WEEKS: 21,
 });
 
-app.config(['$provide', function ($provide) {
-    $provide.decorator('taOptions', ['$delegate', function (taOptions) { // $delegate is the taOptions we are decorating
-        taOptions.toolbar = [
-          ['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent', 'html']
-        ];
-        /*
-        taOptions.toolbar = [
-          ['h3', 'p', 'pre', 'quote'],
-          ['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'redo', 'undo', 'clear'],
-          ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
-          ['html', 'insertImage', 'insertLink', 'insertVideo', 'wordcount', 'charcount']
-        ];
-        */
-        /*
-        ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'pre', 'quote'],
-        ['bold', 'italics', 'underline', 'strikeThrough', 'ul', 'ol', 'redo', 'undo', 'clear'],
-        ['justifyLeft', 'justifyCenter', 'justifyRight', 'indent', 'outdent'],
-        ['html', 'insertImage', 'insertLink', 'insertVideo', 'wordcount', 'charcount']
-         */
-        return taOptions;
-    }]);
-
-    $provide.decorator('taTools', ['$delegate', function (taTools) {
-        delete taTools.quote.iconclass;
-        delete taTools.bold.iconclass;
-        delete taTools.italics.iconclass;
-        delete taTools.underline.iconclass;
-        delete taTools.strikeThrough.iconclass;
-        delete taTools.ul.iconclass;
-        delete taTools.ol.iconclass;
-        delete taTools.redo.iconclass;
-        delete taTools.undo.iconclass;
-        delete taTools.clear.iconclass;
-        delete taTools.justifyLeft.iconclass;
-        delete taTools.justifyCenter.iconclass;
-        delete taTools.justifyRight.iconclass;
-        delete taTools.indent.iconclass;
-        delete taTools.outdent.iconclass;
-        delete taTools.html.iconclass;
-        delete taTools.insertImage.iconclass;
-        delete taTools.insertLink.iconclass;
-        delete taTools.insertVideo.iconclass;
-        delete taTools.wordcount.iconclass;
-        delete taTools.charcount.iconclass;
-
-        taTools.quote.buttontext = 'quote';
-        taTools.bold.buttontext = 'bold';
-        taTools.italics.buttontext = 'italic';
-        taTools.underline.buttontext = 'underline';
-        taTools.strikeThrough.buttontext = 'strikeThrough';
-        taTools.ul.buttontext = 'ul';
-        taTools.ol.buttontext = 'ol';
-        taTools.redo.buttontext = 'redo';
-        taTools.undo.buttontext = 'undo';
-        taTools.clear.buttontext = 'clear';
-        taTools.justifyLeft.buttontext = 'left';
-        taTools.justifyCenter.buttontext = 'center';
-        taTools.justifyRight.buttontext = 'right';
-        taTools.indent.buttontext = 'indent';
-        taTools.outdent.buttontext = 'outdent';
-        taTools.html.buttontext = 'html';
-        taTools.insertImage.buttontext = 'image';
-        taTools.insertLink.buttontext = 'link';
-        taTools.insertVideo.buttontext = 'video';
-        taTools.wordcount.buttontext = 'words';
-        taTools.charcount.buttontext = 'chars';
-
-        taTools.bold.iconclass = 'icon-bold';
-        taTools.italics.iconclass = 'icon-italic';
-        taTools.underline.iconclass = 'icon-underline';
-        taTools.undo.iconclass = 'icon-undo';
-        taTools.redo.iconclass = 'icon-repeat';
-        taTools.justifyLeft.iconclass = 'icon-align-left';
-        taTools.justifyRight.iconclass = 'icon-align-right';
-        taTools.justifyCenter.iconclass = 'icon-align-center';
-        taTools.strikeThrough.iconclass = 'icon-strikethrough';
-        taTools.ul.iconclass = 'icon-list-ul';
-        taTools.ol.iconclass = 'icon-list-ol';
-        taTools.indent.iconclass = 'icon-indent-more';
-        taTools.outdent.iconclass = 'icon-indent-less';
-        taTools.clear.iconclass = 'icon-clear';
-        taTools.html.iconclass = 'icon-html';
-        /*
-        taTools.ul.iconclass = 'icon-list-ul';
-        taTools.ol.iconclass = 'icon-list-ol';
-        taTools.clear.iconclass = 'icon-ban-circle';
-        taTools.insertLink.iconclass = 'icon-link';
-        taTools.unlink.iconclass = 'icon-link red';
-        taTools.insertImage.iconclass = 'icon-picture';
-        */
-        return taTools;
-    }]);
-}]);
-
+/*
 app.value('relativeDateTranslations', {
     just_now:               'adesso', // 'just now',
     seconds_ago:            '{{time}} secondi fa', // '{{time}} seconds ago',
@@ -280,20 +187,6 @@ app.config(['ChartJsProvider', function (ChartJsProvider) {
     ChartJsProvider.setOptions('tooltips', {
         callbacks: {
             title: function (tooltipItems, data) {
-                /*
-                // Pick first xLabel for now
-                var title = '';
-                var labels = data.labels;
-                var labelCount = labels ? labels.length : 0;
-                if (tooltipItems.length > 0) {
-                    var item = tooltipItems[0];
-                    if (item.xLabel) {
-                        title = item.xLabel;
-                    } else if (labelCount > 0 && item.index < labelCount) {
-                        title = labels[item.index];
-                    }
-                }
-                */
                 return ''; // title;
             },
             label: function (tooltipItem, data) {
@@ -306,4 +199,5 @@ app.config(['ChartJsProvider', function (ChartJsProvider) {
     ChartJsProvider.setOptions('legend', {
         display: true,
     });    
-}])
+}]);
+*/

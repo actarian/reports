@@ -1,18 +1,8 @@
-﻿/*--------------------------------------------------
-W S  N E T  P R O J E C T
-project website by websolute
---------------------------------------------------*/
-
-/* global angular */
+﻿/* global angular */
 
 "use strict";
 
-var HOUR_COST = 60; // 55
-
-//var app = angular.module('app', ['ngTagsInput', 'ui.bootstrap', 'ngFileUpload', 'ui.tree']);
-var app = angular.module('app', ['ngRoute', 'ngMessages', 'ngSilent', 'ui.bootstrap', 'relativeDate', 'ngFileUpload', 'ngSanitize', 'textAngular', 'uiSwitch', 'rzModule', 'ngJsonExplorer', 'chart.js']); // , 'ngAnimate', 'ngTagsInput'
-
-app.constant('ROUTES', window.routes ? window.routes : []);
+var app = angular.module('app', ['ngSanitize', 'ngRoute', 'ngMessages']); //, 'ngSilent', 'ui.bootstrap', 'relativeDate', 'ngFileUpload', 'textAngular', 'uiSwitch', 'rzModule', 'ngJsonExplorer', 'chart.js']);
 
 app.config(['$routeProvider', '$locationProvider', function ($routeProvider, $locationProvider) {
     
@@ -48,16 +38,5 @@ app.run(['$rootScope', '$route', '$routeParams', '$window', '$q', '$timeout', fu
         });
         document.title = title || '';        
     });
-
-    $rootScope.broadcast = function (event, params) {
-        $rootScope.$broadcast(event, params);
-    };
-    
-    $rootScope.log = function () {
-        if (console && console.info) {
-            console.info.apply(console, arguments);
-        }
-    };
-
 
 }]);

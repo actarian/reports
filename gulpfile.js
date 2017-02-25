@@ -1,14 +1,28 @@
-var gulp = require('gulp');
-
+var gulp = require('gulp'),
 /*
-var less = require('gulp-less');
-var path = require('path');
-var watch = require('gulp-watch');
-var autoprefixer = require('gulp-autoprefixer');
+less = require('gulp-less'),
+sass = require('gulp-sass'),
+path = require('path'),
+watch = require('gulp-watch'),
+autoprefixer = require('gulp-autoprefixer'),
+jshint = require('gulp-jshint'),
+csslint = require('gulp-csslint'),
+scsslint = require('gulp-scss-lint'),
+plumber = require('gulp-plumber'),
+fs = require('fs'),
+promise = require('es6-promise'),
+rewrite = require('connect-modrewrite'),
 */
-var coffee = require('gulp-coffee');
-var livereload = require('gulp-livereload');
-var webserver = require('gulp-webserver');
+
+coffee = require('gulp-coffee'),
+livereload = require('gulp-livereload'),
+webserver = require('gulp-webserver'),
+
+rename = require('gulp-rename'),
+concat = require('gulp-concat'),
+sourcemaps = require('gulp-sourcemaps'),
+uglify = require('gulp-uglify'),
+watch = require('gulp-watch');
 
 var folder = './';
 
@@ -17,6 +31,42 @@ LESS
 -------------------------------------------------*/
 gulp.task('less', function () {
     gulp.src('*.less').pipe(livereload());
+});
+
+
+/******************
+ *** JS BUNDLES ***
+ ******************/
+var jsbundle = [
+    './app/app.js',
+    './app/configs/configs.js',
+    './app/controllers/controllers.js',
+    './app/directives/directives.js',
+    './app/filters/filters.js',
+    './app/models/models.js',
+    './app/services/services.js',
+];
+gulp.task('js:bundle:0', function() {
+    return gulp.src(jsbundle, { base: '.' })
+    .pipe(rename({
+        dirname: '', // flatten directory
+    }))
+    .pipe(concat('./docs/js/app.js')) // concat bundle
+    .pipe(gulp.dest('.')) // save .js
+    .pipe(sourcemaps.init())
+    .pipe(uglify()) // { preserveComments: 'license' }
+    .pipe(rename({ extname: '.min.js' }))
+    .pipe(sourcemaps.write('.')) // save .map
+    .pipe(gulp.dest('.')); // save .min.js
+});
+gulp.task('js:bundles', ['js:bundle:0'], function(done) { 
+    done(); 
+});
+gulp.task('js:watch', function () {
+    return gulp.watch(jsbundle, ['js:bundles'])
+    .on('change', function(e) {
+        console.log(e.type + ' watcher did change path ' + e.path);
+    });
 });
 
 
@@ -31,22 +81,10 @@ gulp.task('coffee', function () {
 
 
 /*-------------------------------------------------
-WATCH
--------------------------------------------------*/
-gulp.task('watch', function () {
-    var watcher = gulp.watch(folder + '**/*.coffee', ['coffee']);
-    watcher.on('change', function (e) {
-        console.log('watcher on change type ' + e.type + ' path: ' + e.path);
-    });
-    return watcher;
-});
-
-
-/*-------------------------------------------------
 WEBSERVER
 -------------------------------------------------*/
 gulp.task('webserver', function () {
-    return gulp.src(folder)
+    return gulp.src(folder + 'docs/')
         .pipe(webserver({
             livereload: true,
             directoryListing: true,
@@ -56,9 +94,27 @@ gulp.task('webserver', function () {
         }));
 });
 
+/*-------------------------------------------------
+COMPILE
+-------------------------------------------------*/
+gulp.task('compile', ['js:bundles'], function(done) { done(); });
+
+/*-------------------------------------------------
+WATCH
+-------------------------------------------------*/
+/*
+gulp.task('watch', function () {
+    var watcher = gulp.watch(folder + '**//*.js', ['js']);
+    watcher.on('change', function (e) {
+        console.log('watcher on change type ' + e.type + ' path: ' + e.path);
+    });
+    return watcher;
+});
+*/
+gulp.task('watch', ['js:watch'], function(done) { done(); });
 
 /*-------------------------------------------------
 START
 -------------------------------------------------*/
 // gulp.task('start', ['webserver', 'coffee', 'watch']);
-gulp.task('default', ['webserver', 'watch']);
+gulp.task('default', ['compile', 'webserver', 'watch']);

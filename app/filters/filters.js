@@ -1,11 +1,5 @@
 ﻿/* global angular, app, Autolinker */
 
-app.filter('autolink', [function () {
-    return function (value) {
-        return Autolinker.link(value, { className: "a-link" });
-    }
-}]);
-
 app.filter('shortName', ['$filter', function ($filter) {
     function toTitleCase(str) {
         return str.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
@@ -41,42 +35,6 @@ app.filter('customCurrency', ['$filter', function ($filter) {
     return function (cost, currency) {
         return legacyFilter(cost * currency.ratio, currency.formatting);
     }
-}]);
-
-app.filter('customSize', ['APP', function (APP) {
-    return function (inches) {
-        if (APP.unit === APP.units.IMPERIAL) {
-            var feet = Math.floor(inches / 12);
-            inches = inches % 12;
-            inches = Math.round(inches * 10) / 10;
-            return (feet ? feet + '\' ' : '') + (inches + '\'\'');
-        } else {
-            var meters = Math.floor(inches * APP.size.ratio);
-            var cm = (inches * APP.size.ratio * 100) % 100;
-            cm = Math.round(cm * 10) / 10;
-            return (meters ? meters + 'm ' : '') + (cm + 'cm');
-        }
-    };
-}]);
-
-app.filter('customWeight', ['APP', function (APP) {
-    return function (pounds) {
-        if (APP.unit === APP.units.IMPERIAL) {
-            if (pounds < 1) {
-                var oz = pounds * 16;
-                oz = Math.round(oz * 10) / 10;
-                return (oz ? oz + 'oz ' : '');
-            } else {
-                pounds = Math.round(pounds * 100) / 100;
-                return (pounds ? pounds + 'lb ' : '');
-            }
-        } else {
-            var kg = Math.floor(pounds * APP.weight.ratio / 1000);
-            var grams = (pounds * APP.weight.ratio) % 1000;
-            grams = Math.round(grams * 10) / 10;
-            return (kg ? kg + 'kg ' : '') + (grams + 'g');
-        }
-    };
 }]);
 
 app.filter('customNumber', ['$filter', function ($filter) {
