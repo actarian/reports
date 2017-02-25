@@ -203,7 +203,6 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
         },
         filters: filters,
         resolveItems: function (items, rows, comparing) {
-            console.log(items);
             // items = items.items;
             angular.forEach(items, function (item, index) {
                 item.id = this.id;

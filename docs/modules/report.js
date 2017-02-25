@@ -1,361 +1,568 @@
-﻿/* global angular, app */
 
-app.service('Appearance', ['colTypes', function (colTypes) {
+(function(window, angular) {'use strict';
 
-    this.tableColumnClass = function (colType) {
-        var columnClass = '';
-        switch (colType) {
-            case colTypes.ID:
-                columnClass = 'tag tag-link';
-                break;
-            case colTypes.TEXT:
-            case colTypes.CUSTOMER:
-            case colTypes.FAMILY:
-                columnClass = 'text-uppercase';
-                break;
-            case colTypes.TITLE:
-                columnClass = 'col-text text-uppercase';
-                break;
-            case colTypes.DATE:
-                columnClass = 'tag tag-date';
-                break;
-            case colTypes.RESOURCE:
-            case colTypes.STATUS:
-            case colTypes.STATUSSM:
-                columnClass = 'tag tag-pill';
-                break;
-            case colTypes.DISABLED:
-                columnClass = 'tag tag-pill disabled';
-                break;
-            case colTypes.IDS:
-            case colTypes.NUMBER:
-            case colTypes.DOUBLE:
-            case colTypes.WEEKS:
-            case colTypes.HOURS:
-            case colTypes.COSTS:
-            case colTypes.ICON:
-            case colTypes.BUTTONS:
-                break;
-        }
-        return columnClass;
-    };
+/* global angular */
 
-    this.tableHeaderClass = function (colType) {
-        var columnClass = '';
-        switch (colType) {
-            case colTypes.ID:
-                columnClass = 'th-id';
-                break;
-            case colTypes.IDS:
-                columnClass = 'th-ids';
-                break;
-            case colTypes.TEXT:
-                columnClass = 'th-text';
-                break;
-            case colTypes.TITLE:
-                columnClass = 'th-title';
-                break;
-            case colTypes.DATE:
-                columnClass = 'th-date';
-                break;
-            case colTypes.CUSTOMER:
-                columnClass = 'th-customer';
-                break;
-            case colTypes.RESOURCE:
-            case colTypes.DISABLED:
-                columnClass = 'th-resource';
-                break;
-            case colTypes.STATUS:
-                columnClass = 'th-status';
-                break;
-            case colTypes.STATUSSM:
-                columnClass = 'th-status-sm';
-                break;
-            case colTypes.FAMILY:
-                columnClass = 'th-family';
-                break;
-            case colTypes.NUMBER:
-            case colTypes.DOUBLE:
-            case colTypes.WEEKS:
-                columnClass = 'th-number';
-                break;
-            case colTypes.HOURS:
-                columnClass = 'th-hours';
-                break;
-            case colTypes.COSTS:
-                columnClass = 'th-costs';
-                break;
-            case colTypes.ICON:
-                columnClass = 'th-icon';
-                break;
-            case colTypes.BUTTONS:
-                columnClass = 'th-buttons';
-                break;
-        }
-        return columnClass;
-    }
-    
-}]);
+var module = angular.module('reports', ['ng', 'ngSanitize', 'ngMessages']);
 
-app.factory('Cookie', ['$q', '$window', function ($q, $window) {
-    function Cookie() {
-    }
-    Cookie.TIMEOUT = 5 * 60 * 1000; // five minutes
-    Cookie._set = function (name, value, days) {
-        if (days) {
-            var date = new Date();
-            date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-            var expires = "; expires=" + date.toGMTString();
-        } else {
-            var expires = "";
-        }
-        $window.document.cookie = name + "=" + value + expires + "; path=/";
-    }
-    Cookie.set = function (name, value, days) {
-        try {
-            var cache = [];
-            var json = JSON.stringify(value, function (key, value) {
-                if (key === 'pool') {
-                    return;
-                }
-                if (typeof value === 'object' && value !== null) {
-                    if (cache.indexOf(value) !== -1) {
-                        // Circular reference found, discard key
-                        return;
-                    }
-                    cache.push(value);
-                }
-                return value;
-            });
-            cache = null;
-            Cookie._set(name, json, days);
-        } catch (e) {
-            console.log('Cookie.set.error serializing', name, value, e);
-        }
-    };
-    Cookie.get = function (name) {
-        var cookieName = name + "=";
-        var ca = $window.document.cookie.split(';');
-        for (var i = 0; i < ca.length; i++) {
-            var c = ca[i];
-            while (c.charAt(0) == ' ') {
-                c = c.substring(1, c.length);
-            }
-            if (c.indexOf(cookieName) == 0) {
-                var value = c.substring(cookieName.length, c.length);
-                var model = null;
-                try {
-                    model = JSON.parse(value);
-                } catch (e) {
-                    console.log('Cookie.get.error parsing', key, e);
-                };
-                return model;
-            }
-        }
-        return null;
-    };
-    Cookie.delete = function (name) {
-        Cookie._set(name, "", -1);
-    };
-    Cookie.on = function (name) {
-        var deferred = $q.defer();
-        var i, interval = 1000, elapsed = 0, timeout = Cookie.TIMEOUT;
-        function checkCookie() {
-            if (elapsed > timeout) {
-                deferred.reject('timeout');
-            } else {
-                var c = Cookie.get(name);
-                if (c) {
-                    deferred.resolve(c);
+/* global angular, module */
+
+window.console ? null : window.console = { log: function () { } };
+
+/*
+window.domain = '//' + location.hostname + (location.port ? ':' + location.port : ''); // location.protocol + 
+module.constant('domain', domain);
+*/
+
+module.constant('colTypes', {
+    ID: 1,
+    IDS: 2,
+    TITLE: 3,
+    DATE: 4,
+    CUSTOMER: 5,
+    RESOURCE: 6,
+    STATUS: 7,
+    STATUSSM: 8,
+    FAMILY: 9,
+    NUMBER: 10,
+    HOURS: 11,
+    COSTS: 12,
+    PERCENT: 13,
+    INCREMENT: 14,
+    ICON: 15,
+    BUTTONS: 16,
+    DISABLED: 17,
+    LINK: 18,
+    BOOL: 19,
+    DOUBLE: 20,
+    WEEKS: 21,
+});
+
+/* global angular, module */
+
+/* global angular, module */
+
+var aid = 0; // application unique id counter using for dev
+
+module.directive('state', ['$timeout', function ($timeout) {
+    return {
+        restrict: 'EA',
+        template: '<button type="button" class="btn btn-sm btn-primary btn-block-md-down" ng-class="stateClass()" ng-disabled="stateDisabled()"><span ng-transclude></span></button>',
+        transclude: true,
+        replace: true,
+        scope: {
+            state: '=',
+        },
+        link: function (scope, element, attributes, model) {
+            scope.stateClass = function () {
+                if (scope.state.button === element) {
+                    var sclass = {
+                        busy: scope.state.isBusy,
+                        successing: scope.state.isSuccessing,
+                        success: scope.state.isSuccess,
+                        errorring: scope.state.isErroring,
+                        error: scope.state.isError,
+                    };
+                    // console.log('stateClass', sclass);
+                    return sclass;
                 } else {
-                    elapsed += interval;
-                    i = setTimeout(checkCookie, interval);
+                    return null;
+                }
+            };
+            scope.stateDisabled = function () {
+                var disabled = (scope.state.button && scope.state.button !== element); // || scope.$parent.$eval(attributes.onValidate);
+                // console.log('stateDisabled', disabled);
+                return disabled;
+            };
+            function onClick() {
+                $timeout(function () {
+                    if (!scope.$parent.$eval(attributes.onValidate)) {
+                        console.log('state.onClick', attributes.onValidate, attributes.onClick);
+                        scope.state.button = element;
+                        return scope.$parent.$eval(attributes.onClick);
+                    } else {
+                        scope.$parent.$eval('form.$setSubmitted()');
+                    }
+                });
+            };
+            function addListeners() {
+                element.on('touchstart click', onClick);
+            };
+            function removeListeners() {
+                element.off('touchstart click', onClick);
+            };
+            scope.$on('$destroy', function () {
+                removeListeners();
+            });
+            addListeners();
+        }
+    }
+}]);
+
+module.directive('sortable', ['$timeout', function ($timeout) {    
+    return {
+        restrict: 'A',
+        scope: {
+            source: '=sortable',
+            key: '@sortableKey',
+            sort: '=?',
+        },
+        template: '<th ng-class="{ \'sorted-up\': sort == 1, \'sorted-down\': sort == -1 }" ng-transclude></th>',
+        transclude: true,
+        replace: true,
+        link: function (scope, element, attributes, model) {
+            scope.sort = scope.sort || 0;
+            function onSort() {
+                scope.sort = scope.source.getSort(scope.key);
+                // console.log('sortable.onSort', scope.key, scope.source.filters.sort);
+            }
+            scope.$watchCollection('source.filters.sort', onSort);
+            onSort();
+            function onTap() {
+                if (scope.source.state.enabled()) {
+                    var sort = scope.sort ? (scope.sort * -1) : 1;
+                    scope.source.setSort(scope.key, sort).then(function (response) {
+                        scope.sort = sort;
+                    });
                 }
             }
+            function addListeners() {
+                element.on('touchstart click', onTap);
+            };
+            function removeListeners() {
+                element.off('touchstart click', onTap);
+            };
+            scope.$on('$destroy', function () {
+                removeListeners();
+            });
+            addListeners();
         }
-        checkCookie();
-        return deferred.promise;
+    }
+}]);
+
+module.directive('draggableItem', ['$parse', '$timeout', 'Utils', 'Style', 'ElementRect', 'Droppables', function ($parse, $timeout, Utils, Style, ElementRect, Droppables) {
+
+    return {
+        require: 'ngModel',
+        link: function (scope, element, attributes, model) {
+            var nativeElement = element[0];
+            var selector = attributes.draggableItem || '.item';
+            var condition = attributes.draggableIf !== undefined ? $parse(attributes.draggableIf) : function () { return true; };
+            var target = nativeElement.querySelector(selector);
+            var style = new Style();
+            var elementRect = new ElementRect();
+            var down, move, diff, dragging, rects;
+            function onStart(e) {
+                if (condition(scope)) {
+                    down = Utils.getTouch(e);
+                    addDragListeners();
+                }
+                return false;
+            }
+            function onMove(e) {
+                move = Utils.getTouch(e);
+                diff = down.difference(move);
+                if (!dragging && diff.power() > 25) {
+                    dragging = true;
+                    element.addClass('dragging');
+                }
+                if (dragging) {
+                    style.transform = 'translateX(' + diff.x + 'px) translateY(' + diff.y + 'px)';
+                    style.set(target);
+                    elementRect.set(nativeElement).offset(diff);
+                    rects = Droppables.getIntersections(elementRect);
+                    if (rects.length) {
+                        angular.element(rects[0].native).addClass('dropping');
+                    }
+                }
+                // console.log(diff);
+                return false;
+            }
+            function onEnd(e) {
+                if (dragging) {
+                    dragging = false;
+                    element.removeClass('dragging');
+                    style.transform = 'none';
+                    style.set(target);
+                    var fromIndex = $parse(attributes.droppableIndex)(scope);
+                    var fromModel = $parse(attributes.ngModel)(scope);
+                    if (rects.length) {
+                        var event = null;
+                        angular.forEach(rects, function (rect, index) {
+                            angular.element(rect.native).removeClass('dropping over');
+                            if (rect.data.droppable(scope) && !event) {
+                                event = {
+                                    from: {
+                                        index: fromIndex,
+                                        model: fromModel,
+                                        target: target,
+                                    },
+                                    to: {
+                                        index: rect.data.index,
+                                        model: rect.data.model,
+                                        target: rect.native
+                                    },
+                                };
+                                $timeout(function () {
+                                    scope.$emit('onDropItem', event);
+                                });
+                            }
+                        });
+                    } else {
+                        var event = {
+                            from: {
+                                index: fromIndex,
+                                model: fromModel,
+                                target: target,
+                            },
+                            to: null,
+                        };
+                        $timeout(function () {
+                            scope.$emit('onDropOut', event);
+                        });
+                    }
+                }
+                removeDragListeners();
+                return false;
+            }
+            function addDragListeners() {
+                angular.element(window).on('touchmove mousemove', onMove);
+                angular.element(window).on('touchend mouseup', onEnd);
+            };
+            function removeDragListeners() {
+                angular.element(window).off('touchmove mousemove', onMove);
+                angular.element(window).off('touchend mouseup', onEnd);
+            };
+            function addListeners() {
+                element.on('touchstart mousedown', onStart);
+            };
+            function removeListeners() {
+                element.off('touchstart mousedown', onStart);
+            };
+            scope.$on('$destroy', function () {
+                removeListeners();
+            });
+            addListeners();
+        }
     };
-    return Cookie;
 }]);
 
-app.factory('LocalStorage', ['$q', '$window', 'Cookie', function ($q, $window, Cookie) {
-    function LocalStorage() {
-    }
-    function isLocalStorageSupported() {
-        var supported = false;
-        try {
-            supported = 'localStorage' in $window && $window['localStorage'] !== null;
-            if (supported) {
-                $window.localStorage.setItem('test', '1');
-                $window.localStorage.removeItem('test');
-            } else {
-                supported = false;
+module.directive('droppableItem', ['$parse', 'Utils', 'Style', 'Droppables', function ($parse, Utils, Style, Droppables) {
+    var droppables = {};
+    return {
+        require: 'ngModel',
+        link: function (scope, element, attributes, model) {
+            var nativeElement = element[0];
+            var selector = attributes.droppableItem || '.item';
+            function onGetData() {
+                var index = $parse(attributes.droppableIndex)(scope);
+                var model = $parse(attributes.ngModel)(scope);
+                var droppable = attributes.droppableIf !== undefined ? $parse(attributes.droppableIf) : function () { return true };
+                return {
+                    index: index,
+                    model: model,
+                    droppable: droppable,
+                };
             }
-        } catch (e) {
-            supported = false;
+            Droppables.add(nativeElement, onGetData);
+            scope.$on('$destroy', function () {
+                Droppables.remove(nativeElement);
+            });
         }
-        return supported;
     }
-    LocalStorage.isSupported = isLocalStorageSupported();
-    if (LocalStorage.isSupported) {
-        LocalStorage.set = function (name, value) {
-            try {
-                var cache = [];
-                var json = JSON.stringify(value, function (key, value) {
-                    if (key === 'pool') {
-                        return;
-                    }
-                    if (typeof value === 'object' && value !== null) {
-                        if (cache.indexOf(value) !== -1) {
-                            // Circular reference found, discard key
-                            return;
-                        }
-                        cache.push(value);
-                    }
-                    return value;
-                });
-                cache = null;
-                $window.localStorage.setItem(name, json);
-            } catch (e) {
-                console.log('LocalStorage.set.error serializing', name, value, e);
-            }
-        };
-        LocalStorage.get = function (name) {
-            var value = null;
-            if ($window.localStorage[name] !== undefined) {
-                try {
-                    value = JSON.parse($window.localStorage[name]);
-                } catch (e) {
-                    console.log('LocalStorage.get.error parsing', name, e);
-                }
-            }
-            return value;
-        };
-        LocalStorage.delete = function (name) {
-            $window.localStorage.removeItem(name);
-        };
-        LocalStorage.on = function (name) {
-            var deferred = $q.defer();
-            var i, timeout = Cookie.TIMEOUT;
-            function storageEvent(e) {
-                // console.log('LocalStorage.on', name, e);
-                clearTimeout(i);
-                if (e.originalEvent.key == name) {
-                    try {
-                        var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
-                        deferred.resolve(value);
-                    } catch (e) {
-                        console.log('LocalStorage.on.error parsing', name, e);
-                        deferred.reject('error parsing ' + name);
-                    }
-                }
-            }
-            angular.element($window).on('storage', storageEvent);
-            i = setTimeout(function () {
-                deferred.reject('timeout');
-            }, timeout);
-            return deferred.promise;
-        };
-    } else {
-        console.log('LocalStorage.unsupported switching to cookies');
-        LocalStorage.set = Cookie.set;
-        LocalStorage.get = Cookie.get;
-        LocalStorage.delete = Cookie.delete;
-        LocalStorage.on = Cookie.on;
-    }
-    return LocalStorage;
 }]);
 
-app.factory('SessionStorage', ['$q', '$window', 'Cookie', function ($q, $window, Cookie) {
-    function SessionStorage() {
-    }
-    function isSessionStorageSupported() {
-        var supported = false;
-        try {
-            supported = 'sessionStorage' in $window && $window.sessionStorage !== undefined;
-            if (supported) {
-                $window.sessionStorage.setItem('test', '1');
-                $window.sessionStorage.removeItem('test');
-            } else {
-                supported = false;
+module.directive('onClickOut', ['$document', '$parse', '$timeout', 'Utils', function ($document, $parse, $timeout, Utils) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attributes, model) {
+            function onClick(e) {
+                if (Utils.getClosestElement(e.target, element[0]) === null) {
+                    $timeout(function () {                    
+                        console.log('onClickOut', attributes.onClickOut, scope.cols.showValues);
+                        var onClickOut = $parse(attributes.onClickOut);
+                        onClickOut(scope);
+                    });
+                }
             }
-        } catch (e) {
-            supported = false;
+            function addListeners() {
+                angular.element($document).on('click', onClick);
+            };
+            function removeListeners() {
+                angular.element($document).off('click', onClick);
+            };
+            scope.$on('$destroy', function () {
+                removeListeners();
+            });
+            addListeners();
         }
-        return supported;
-    }
-    SessionStorage.isSupported = isSessionStorageSupported();
-    if (SessionStorage.isSupported) {
-        SessionStorage.set = function (name, value) {
-            try {
-                var cache = [];
-                var json = JSON.stringify(value, function (key, value) {
-                    if (key === 'pool') {
-                        return;
-                    }
-                    if (typeof value === 'object' && value !== null) {
-                        if (cache.indexOf(value) !== -1) {
-                            // Circular reference found, discard key
-                            return;
-                        }
-                        cache.push(value);
-                    }
-                    return value;
-                });
-                cache = null;
-                $window.sessionStorage.setItem(name, json);
-            } catch (e) {
-                console.log('SessionStorage.set.error serializing', name, value, e);
-            }
-        };
-        SessionStorage.get = function (name) {
-            var value = null;
-            if ($window.sessionStorage[name] !== undefined) {
-                try {
-                    value = JSON.parse($window.sessionStorage[name]);
-                } catch (e) {
-                    console.log('SessionStorage.get.error parsing', name, e);
-                }
-            }
-            return value;
-        };
-        SessionStorage.delete = function (name) {
-            $window.sessionStorage.removeItem(name);
-        };
-        SessionStorage.on = function (name) {
-            var deferred = $q.defer();
-            var i, timeout = Cookie.TIMEOUT;
-            function storageEvent(e) {
-                // console.log('SessionStorage.on', name, e);
-                clearTimeout(i);
-                if (e.originalEvent.key === name) {
-                    try {
-                        var value = JSON.parse(e.originalEvent.newValue); // , e.originalEvent.oldValue
-                        deferred.resolve(value);
-                    } catch (e) {
-                        console.log('SessionStorage.on.error parsing', name, e);
-                        deferred.reject('error parsing ' + name);
-                    }
-                }
-            }
-            angular.element($window).on('storage', storageEvent);
-            i = setTimeout(function () {
-                deferred.reject('timeout');
-            }, timeout);
-            return deferred.promise;
-        };
-    } else {
-        console.log('SessionStorage.unsupported switching to cookies');
-        SessionStorage.set = Cookie.set;
-        SessionStorage.get = Cookie.get;
-        SessionStorage.delete = Cookie.delete;
-        SessionStorage.on = Cookie.on;
-    }
-    return SessionStorage;
+    };
 }]);
 
-app.factory('Animate', [function () {
+module.directive('toggler', ['$document', '$parse', '$timeout', 'Utils', function ($document, $parse, $timeout, Utils) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attributes, model) {
+            if (attributes.value === undefined) {
+                throw new Error('[toggler] attribute value required');
+            }
+            if (attributes.target === undefined) {
+                throw new Error('[toggler] attribute target required');
+            }
+            function isActive() {
+                return $parse(attributes.toggler + '==' + attributes.value)(scope);
+            }
+            function activate() {
+                addOutListeners();
+                $timeout(function () {
+                    $parse(attributes.toggler + '=' + attributes.value)(scope);
+                });
+            }
+            function deactivate() {
+                removeOutListeners();
+                $timeout(function () {
+                    $parse(attributes.toggler + '=null')(scope);
+                });
+            }
+            function onClick(e) {
+                setTimeout(function () {
+                    if (isActive()) {
+                        deactivate();
+                    } else {
+                        activate();
+                    }
+                }, 100);
+            }
+            function onClickOut(e) {
+                if (isActive()
+                    && Utils.getClosestElement(e.target, element[0]) === null
+                    && Utils.getClosest(e.target, attributes.target) === null) {
+                    deactivate();
+                }
+            }
+            function addOutListeners() {
+                angular.element($document).on('click', onClickOut);
+            };
+            function removeOutListeners() {
+                angular.element($document).off('click', onClickOut);
+            };
+            function addListeners() {
+                element.on('click', onClick);
+            };
+            function removeListeners() {
+                element.off('click', onClick);
+            };
+            scope.$on('$destroy', function () {
+                removeListeners();
+                removeOutListeners();
+            });
+            addListeners();
+        }
+    };
+}]);
+
+/* global angular, module */
+
+module.filter('shortName', ['$filter', function ($filter) {
+    function toTitleCase(str) {
+        return str.replace(/\w\S*/g, function (txt) { return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase(); });
+    }
+    return function (value) {
+        if (!value) {
+            return '';
+        }
+        if (value.indexOf(' .') === value.length - 2) {
+            value = value.split(' .').join('');
+        }
+        /*
+        var splitted;
+        if (value.indexOf('.') !== -1) {
+            splitted = value.split('.');
+        } else {
+            splitted = value.split(' ');
+        }
+        */
+        var splitted = value.split(' ');
+        var firstName = splitted.shift();
+        if (splitted.length) {
+            var lastName = splitted.join(' ');
+            return firstName.substr(0, 1).toUpperCase() + '.' + toTitleCase(lastName);
+        } else {
+            return firstName;
+        }
+    }
+}]);
+
+module.filter('customCurrency', ['$filter', function ($filter) {
+    var legacyFilter = $filter('currency');
+    return function (cost, currency) {
+        return legacyFilter(cost * currency.ratio, currency.formatting);
+    }
+}]);
+
+module.filter('customNumber', ['$filter', function ($filter) {
+    var filter = $filter('number');
+    return function (value, precision, unit) {
+        unit = unit || '';
+        return (value ? filter(value, precision) + unit : '-');
+    }
+}]);
+
+module.filter('customHours', [function () {
+    return function (value) {
+        if (value) {
+            var hours = Math.floor(value);
+            var minutes = Math.floor((value - hours) * 60);
+            var label = hours ? hours + ' H' : '';
+            label += minutes ? ' ' + minutes + ' m' : '';
+            return label;
+        } else {
+            return '-';
+        }
+    }
+}]);
+
+module.filter('customDate', ['$filter', function ($filter) {
+    var filter = $filter('date');
+    return function (value, format, timezone) {
+        return value ? filter(value, format, timezone) : '-';
+    }
+}]);
+
+module.filter('customTime', ['$filter', function ($filter) {
+    return function (value, placeholder) {
+        if (value) {
+            return Utils.parseTime(value);
+        } else {
+            return (placeholder ? placeholder : '-');
+        }
+    }
+}]);
+
+module.filter('customDigital', ['$filter', function ($filter) {
+    return function (value, placeholder) {
+        if (value) {
+            return Utils.parseHour(value);
+        } else {
+            return (placeholder ? placeholder : '-');
+        }
+    }
+}]);
+
+module.filter('customString', ['$filter', function ($filter) {
+    return function (value, placeholder) {
+        return value ? value : (placeholder ? placeholder : '-');
+    }
+}]);
+
+module.filter('customEnum', function () {
+    return function (val) {
+        val = val + 1;
+        return val < 10 ? '0' + val : val;
+    };
+});
+
+module.filter('groupBy', ['$parse', 'filterWatcher', function ($parse, filterWatcher) {
+    function _groupBy(collection, getter) {
+        var dict = {};
+        var key;
+        angular.forEach(collection, function (item) {
+            key = getter(item);
+            if (!dict[key]) {
+                dict[key] = [];
+            }
+            dict[key].push(item);
+        });
+        return dict;
+    }
+    return function (collection, property) {
+        if (!angular.isObject(collection) || angular.isUndefined(property)) {
+            return collection;
+        }
+        return filterWatcher.isMemoized('groupBy', arguments) || filterWatcher.memoize('groupBy', arguments, this, _groupBy(collection, $parse(property)));        
+    }
+}]);
+
+module.provider('filterWatcher', function () {
+    function isNull(value) {
+        return value === null;
+    }
+    function isScope(obj) {
+        return obj && obj.$evalAsync && obj.$watch;
+    }
+    this.$get = ['$window', '$rootScope', function ($window, $rootScope) {
+        var $$cache = {};
+        var $$listeners = {};
+        var $$timeout = $window.setTimeout;
+        function getHashKey(fName, args) {
+            function replacerFactory() {
+                var cache = [];
+                return function (key, val) {
+                    if (angular.isObject(val) && !isNull(val)) {
+                        if (~cache.indexOf(val)) {
+                            return '[Circular]';
+                        }
+                        cache.push(val);
+                    }
+                    if ($window == val) return '$WINDOW';
+                    if ($window.document == val) return '$DOCUMENT';
+                    if (isScope(val)) return '$SCOPE';
+                    return val;
+                }
+            }
+            return [fName, JSON.stringify(args, replacerFactory())]
+              .join('#')
+              .replace(/"/g, '');
+        }
+        function removeCache(event) {
+            var id = event.targetScope.$id;
+            angular.forEach($$listeners[id], function (key) {
+                delete $$cache[key];
+            });
+            delete $$listeners[id];
+        }
+        function cleanStateless() {
+            $$timeout(function () {
+                if (!$rootScope.$$phase) {
+                    $$cache = {};
+                }
+            }, 2000);
+        }
+        function addListener(scope, hashKey) {
+            var id = scope.$id;
+            if (angular.isUndefined($$listeners[id])) {
+                scope.$on('$destroy', removeCache);
+                $$listeners[id] = [];
+            }
+            return $$listeners[id].push(hashKey);
+        }
+        function $$isMemoized(filterName, args) {
+            var hashKey = getHashKey(filterName, args);
+            return $$cache[hashKey];
+        }
+        function $$memoize(filterName, args, scope, result) {
+            var hashKey = getHashKey(filterName, args);
+            //store result in `$$cache` container
+            $$cache[hashKey] = result;
+            // for angular versions that less than 1.3
+            // add to `$destroy` listener, a cleaner callback
+            if (isScope(scope)) {
+                addListener(scope, hashKey);
+            } else {
+                cleanStateless();
+            }
+            return result;
+        }
+        return {
+            isMemoized: $$isMemoized,
+            memoize: $$memoize
+        }
+    }];
+});
+
+/* global angular, module */
+
+module.factory('Animate', [function () {
     function Animate(callback, useTimeout) {
         this.callback = callback;
         this.isPlaying = false;
@@ -402,7 +609,7 @@ app.factory('Animate', [function () {
     return Animate;
 }]);
 
-app.factory('Md5', [function () {
+module.factory('Md5', [function () {
 
     var hex_chr = '0123456789abcdef'.split('');
 
@@ -589,7 +796,7 @@ app.factory('Md5', [function () {
     return Md5;
 }]);
 
-app.factory('Utils', ['$compile', '$controller', 'Vector', 'Md5', function ($compile, $controller, Vector, Md5) {
+module.factory('Utils', ['$compile', '$controller', 'Vector', 'Md5', function ($compile, $controller, Vector, Md5) {
     (function () {
         // POLYFILL window.requestAnimationFrame
         var lastTime = 0;
@@ -893,7 +1100,7 @@ app.factory('Utils', ['$compile', '$controller', 'Vector', 'Md5', function ($com
     return Utils;
 }]);
 
-app.factory('State', ['$timeout', function ($timeout) {
+module.factory('State', ['$timeout', function ($timeout) {
     function State() {
         this.isReady = false;
         this.idle();
@@ -982,7 +1189,280 @@ app.factory('State', ['$timeout', function ($timeout) {
     return State;
 }]);
 
-app.factory('DataFilter', ['$filter', function ($filter) {
+module.factory('Range', ['$filter', function ($filter) {
+    function Range(data) {
+        this.type = Range.types.QUARTER;
+        data ? angular.extend(this, data) : null;
+    }
+    Range.prototype = {
+        currentQuarter: function () {
+            this.diff = 0;
+            return this.setQuarter();
+        },
+        currentSemester: function () {
+            this.diff = 0;
+            return this.setSemester();
+        },
+        currentYear: function () {
+            this.diff = 0;
+            return this.setYear();
+        },
+        setQuarter: function () {
+            this.type = Range.types.QUARTER;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 3 * this.diff);
+            var year = now.getFullYear();
+            var quarter = Math.floor(now.getMonth() / 3);
+            this.from = new Date(year, quarter * 3, 1);
+            this.to = new Date(year, quarter * 3 + 3, 0);
+            return this;
+        },
+        setSemester: function () {
+            this.type = Range.types.SEMESTER;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 6 * this.diff);
+            var year = now.getFullYear();
+            var semester = Math.floor(now.getMonth() / 6);
+            this.from = new Date(year, semester * 6, 1);
+            this.to = new Date(year, semester * 6 + 6, 0);
+            return this;
+        },
+        setYear: function () {
+            this.type = Range.types.YEAR;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 12 * this.diff);
+            var year = now.getFullYear();
+            this.from = new Date(year, 0, 1);
+            this.to = new Date(year, 12, 0);
+            return this;
+        },
+        getName: function () {
+            switch (this.type) {
+                case Range.types.QUARTER:
+                    return 'Trimestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
+                    break;
+                case Range.types.SEMESTER:
+                    return 'Semestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
+                    break;
+                case Range.types.YEAR:
+                    return 'Anno ' + $filter('date')(this.from, 'yyyy');
+                    break;
+            }
+        },
+        setDiff: function(diff) {
+            this.diff += diff;
+            switch (this.type) {
+                case Range.types.QUARTER:
+                    return this.setQuarter();
+                    break;
+                case Range.types.SEMESTER:
+                    return this.setSemester();
+                    break;
+                case Range.types.YEAR:
+                    return this.setYear();
+                    break;
+            }
+        },
+        set: function (filters, source) {
+            filters.dateFrom = this.from;
+            filters.dateTo = this.to;
+            source ? source.setDates(filters.dateFrom, filters.dateTo) : null;
+            return this;
+        },
+        is: function (filters) {
+            return  filters.dateFrom.getTime() == this.from.getTime() &&
+                    filters.dateTo.getTime() == this.to.getTime();
+        },
+    };
+    Range.types = {
+        QUARTER: 1,
+        SEMESTER: 2,
+        YEAR: 3,
+    }
+    return Range;
+}]);
+
+module.factory('Vector', function () {
+    function Vector(x, y) {
+        this.x = x || 0;
+        this.y = y || 0;
+    }
+    Vector.make = function (a, b) {
+        return new Vector(b.x - a.x, b.y - a.y);
+    };
+    Vector.size = function (a) {
+        return Math.sqrt(a.x * a.x + a.y * a.y);
+    };
+    Vector.normalize = function (a) {
+        var l = Vector.size(a);
+        a.x /= l;
+        a.y /= l;
+        return a;
+    };
+    Vector.incidence = function (a, b) {
+        var angle = Math.atan2(b.y, b.x) - Math.atan2(a.y, a.x);
+        // if (angle < 0) angle += 2 * Math.PI;
+        // angle = Math.min(angle, (Math.PI * 2 - angle));
+        return angle;
+    };
+    Vector.distance = function (a, b) {
+        return Math.sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+    };
+    Vector.cross = function (a, b) {
+        return (a.x * b.y) - (a.y * b.x);
+    };
+    Vector.difference = function (a, b) {
+        return new Vector(b.x - a.x, b.y - a.y);
+    };
+    Vector.power = function (a, b) {
+        var x = Math.abs(b.x - a.x);
+        var y = Math.abs(b.y - a.y);
+        return (x + y) / 2;
+    };
+    Vector.prototype = {
+        size: function () {
+            return Vector.size(this);
+        },
+        normalize: function () {
+            return Vector.normalize(this);
+        },
+        incidence: function (b) {
+            return Vector.incidence(this, b);
+        },
+        cross: function (b) {
+            return Vector.cross(this, b);
+        },
+        distance: function (b) {
+            return Vector.distance(this, b);
+        },
+        difference: function (b) {
+            return Vector.difference(this, b);
+        },
+        power: function () {
+            return (Math.abs(this.x) + Math.abs(this.y)) / 2;
+        },
+        towards: function (b, friction) {
+            friction = friction || 0.125;
+            this.x += (b.x - this.x) * friction;
+            this.y += (b.y - this.y) * friction;
+            return this;
+        },
+        add: function (b) {
+            this.x += b.x;
+            this.y += b.y;
+            return this;
+        },
+        friction: function (b) {
+            this.x *= b;
+            this.y *= b;
+            return this;
+        },
+        copy: function (b) {
+            return new Vector(this.x, this.y);
+        },
+        toString: function () {
+            return '{' + this.x + ',' + this.y + '}';
+        },
+    };
+    return Vector;
+});
+
+module.factory('ElementRect', ['Vector', function (Vector) {
+    function ElementRect() {
+        this.x = 0;
+        this.y = 0;
+        this.width = 0;
+        this.height = 0;
+        this.center = new Vector();
+    }
+    ElementRect.fromNative = function (nativeElement) {
+        return new ElementRect().set(nativeElement);
+    }
+    ElementRect.prototype = {
+        set: function (nativeElement) {
+            var rect = nativeElement.getBoundingClientRect();
+            this.x = rect.left;
+            this.y = rect.top;
+            this.width = nativeElement.offsetWidth;
+            this.height = nativeElement.offsetHeight;
+            this.center.x = this.x + this.width / 2;
+            this.center.y = this.y + this.height / 2;
+            this.native = nativeElement;
+            return this;
+        },
+        offset: function (vector) {
+            this.x += vector.x;
+            this.y += vector.y;
+            this.center.x = this.x + this.width / 2;
+            this.center.y = this.y + this.height / 2;
+            return this;
+        },
+        intersect: function (element) {
+            // console.log('intersect.this', this, 'element', element);
+            return !(element.x > this.x + this.width ||
+                        element.x + element.width < this.x ||
+                        element.y > this.y + this.height ||
+                        element.y + element.height < this.y);
+        },
+        toString: function () {
+            return '{' + this.x + ',' + this.y + ',' + this.width + ',' + this.height + '}';
+        },
+    };
+    return ElementRect;
+}]);
+
+module.factory('Style', function () {
+    var prefix = function detectTransformProperty() {
+        var transform = 'transform',
+            webkit = 'webkitTransform';
+        var div = document.createElement("DIV");
+        if (typeof div.style[transform] !== 'undefined') {
+            ['webkit', 'moz', 'o', 'ms'].every(function (prop) {
+                var prefixed = '-' + prop + '-transform';
+                if (typeof div.style[prefixed] !== 'undefined') {
+                    prefix = prefixed;
+                    return false;
+                }
+                return true;
+            });
+        } else if (typeof div.style[webkit] !== 'undefined') {
+            prefix = '-webkit-transform';
+        } else {
+            prefix = undefined;
+        }
+        return prefix;
+    }();
+    function Style() {
+        this.props = {
+            scale: 1,
+            hoverScale: 1,
+            currentScale: 1,
+        }
+    }
+    Style.prototype = {
+        set: function (element) {
+            var styles = [];
+            angular.forEach(this, function (value, key) {
+                if (key !== 'props')
+                    styles.push(key + ':' + value);
+            });
+            element.style.cssText = styles.join(';') + ';';
+        },
+        transform: function (transform) {
+            this[prefix] = transform;
+        },
+        transformOrigin: function (x, y) {
+            this[prefix + '-origin-x'] = (Math.round(x * 1000) / 1000) + '%';
+            this[prefix + '-origin-y'] = (Math.round(y * 1000) / 1000) + '%';
+        },
+    };
+    Style.prefix = prefix;
+    return Style;
+});
+
+/* global angular, module */
+
+module.factory('DataFilter', ['$filter', function ($filter) {
     function DataFilter(data) {
         /*
         this.dateFrom = null;
@@ -1064,7 +1544,7 @@ app.factory('DataFilter', ['$filter', function ($filter) {
     return DataFilter;
 }]);
 
-app.factory('DataSource', ['$q', '$http', '$rootScope', '$location', 'LocalStorage', 'State', 'DataFilter', function ($q, $http, $rootScope, $location, storage, State, DataFilter) {
+module.factory('DataSource', ['$q', '$http', '$rootScope', '$location', 'State', 'DataFilter', function ($q, $http, $rootScope, $location, State, DataFilter) {
     var PAGES_FIRST = 1;
     var PAGES_SIZE = 7;
     var PAGES_MAX = Number.POSITIVE_INFINITY;
@@ -1126,15 +1606,9 @@ app.factory('DataSource', ['$q', '$http', '$rootScope', '$location', 'LocalStora
         error: function (response) {
             // typeof (err) === "string" ? err = { status: status } : (err == null ? err = { status: status } : err.status = status);
             var error = response ? { message: response.data ? response.data.message : "error", status: response.status } : null;
-            if (error.message === 'ERROR_NOT_ALLOWED') {
-                var q = storage.get('q');
-                console.log('onError', error, 'q', q);
-                this.unallowed(error);
-            } else {
-                this.deferred.reject(error);
-                this.deferred = null;
-                this.state.error(error);
-            }
+            this.deferred.reject(error);
+            this.deferred = null;
+            this.state.error(error);
         },
         parseHeader: function () {
             var responseHeader = this.response.headers('X-Pagination');
@@ -1402,7 +1876,7 @@ app.factory('DataSource', ['$q', '$http', '$rootScope', '$location', 'LocalStora
     return DataSource;
 }]);
 
-app.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($parse, $filter, Utils, colTypes) {        
+module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($parse, $filter, Utils, colTypes) {        
     function Column(data) {
         data ? angular.extend(this, data) : null;
         // PREPARE GETTER SETTERS
@@ -1751,7 +2225,7 @@ app.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($pars
     return Column;
 }]);
 
-app.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($parse, Utils, Column, colTypes) {
+module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($parse, Utils, Column, colTypes) {
     function Columns(columns) {
         var list = [];
         if (columns) {
@@ -2092,7 +2566,7 @@ app.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($pars
     return Columns;
 }]);
 
-app.factory('ChartData', ['$filter', function ($filter) {
+module.factory('ChartData', ['$filter', function ($filter) {
     function ChartData(data) {
         var defaults = {
             type: 'chart-line',
@@ -2225,7 +2699,7 @@ app.factory('ChartData', ['$filter', function ($filter) {
     return ChartData;
 }]);
 
-app.service('Droppables', ['ElementRect', function (ElementRect) {
+module.service('Droppables', ['ElementRect', function (ElementRect) {
     this.natives = [];
     this.callbacks = [];
     this.rects = [];
@@ -2269,3 +2743,6 @@ app.service('Droppables', ['ElementRect', function (ElementRect) {
         return intersections;
     };
 }]);
+
+
+})(window, window.angular);

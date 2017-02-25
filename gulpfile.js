@@ -38,20 +38,22 @@ gulp.task('less', function () {
  *** JS BUNDLES ***
  ******************/
 var jsbundle = [
-    './app/app.js',
-    './app/configs/configs.js',
-    './app/controllers/controllers.js',
-    './app/directives/directives.js',
-    './app/filters/filters.js',
-    './app/models/models.js',
-    './app/services/services.js',
+    './module/__begin.js',
+    './module/module.js',
+    './module/configs/configs.js',
+    './module/controllers/controllers.js',
+    './module/directives/directives.js',
+    './module/filters/filters.js',
+    './module/models/models.js',
+    './module/services/services.js',
+    './module/__end.js',    
 ];
 gulp.task('js:bundle:0', function() {
     return gulp.src(jsbundle, { base: '.' })
     .pipe(rename({
         dirname: '', // flatten directory
     }))
-    .pipe(concat('./docs/js/app.js')) // concat bundle
+    .pipe(concat('./docs/modules/report.js')) // concat bundle
     .pipe(gulp.dest('.')) // save .js
     .pipe(sourcemaps.init())
     .pipe(uglify()) // { preserveComments: 'license' }
