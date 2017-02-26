@@ -1883,7 +1883,9 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
         if (angular.isFunction(this.value)) {
             this.value = this.value.bind(this);
         }
+        this.name = this.name || this.value;
         this.raw = this.raw || this.value;
+        this.key = this.key || this.value;
         this.source = this.source || this.value;
         this.getters = {};
         var fields = ['key', 'value', 'raw', 'source', 'post'];
@@ -2563,14 +2565,12 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         },
     };
     Columns.types = colTypes;
-    Columns.fromSource = function (items) {
-        var cols = Columns.parseCols(items);
-        console.log('Columns.fromSource', cols);
-        return cols;
+    Columns.fromDatas = function (datas) {
+        return Columns.parseCols(datas);
     }
-    Columns.parseCols = function getColumns(items) {
+    Columns.parseCols = function getColumns(datas) {
         var cols = null;
-        if (items && items.length) {
+        if (datas && datas.length) {
             cols = [];
             function parse(item, prop) {
                 if (angular.isArray(item)) {
@@ -2582,23 +2582,129 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                         parse(value, (prop ? prop + '.' : '') + key);
                     });
                 } else {
-                    var type = 1;
+                    /*
+                    ID: 1,
+                    DATE: 4,
+                    STATUS: 7,
+                    NUMBER: 10,
+                    PERCENT: 13,
+                    DOUBLE: 20,
+                    */
+                    var col = {
+                        value: prop,
+                        type: colTypes.TEXT,
+                        active: cols.length < 3,
+                    };
                     if (angular.isNumber(item)) {
-                        type = 2;
+                        col.type = colTypes.NUMBER;
+                        col.aggregate = true;
+                        col.color = 1;
                     } else if (angular.isDate(item)) {
-                        type = 3;
+                        col.type = colTypes.DATE;
+                    } else {
+                        col.groupBy = true;
+                        col.hasSearch = true;
                     }
-                    cols.push({
-                        name: prop,
-                        type: type
-                    });
+                    cols.push(col);
                 }
             }
-            parse(items[0]);
+            parse(datas[0]);
         }
         return cols;
     };
     return Columns;
+}]);
+
+module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($parse, Columns, Column, colTypes) {
+    function Table(cols) {
+        this.cols = new Columns(cols).expand({ dynamic: true, compare: false });
+        this.cols.showReport = true;
+        this.defaults = cols.map(function (col) { 
+            return { 
+                id: col.id, 
+                active: col.active,
+            };
+        });
+        this.colGroups = [{
+            name: 'GroupBy',
+            cols: this.cols.getGroups()
+        }, ];
+        this.valGroups = [{
+            name: 'Aggregate',
+            cols: this.cols.getAggregates()
+        }];
+        this.excludes = [];
+        this.includes = [];
+        /*
+        this.excludes = [{
+            name: 'Monte ore / tutti i reparti', filter: function (row) {
+                return !(row.supplier.id === 15143);
+            }, active: true,
+        }, ];
+        */
+    }
+    Table.prototype = {
+        groupBy: function (datas, compares) {
+            // console.log(datas, compares);
+            var rows = this.rows;
+            var cols = this.cols;
+            var excludes = this.excludes;
+            var includes = this.includes;
+            cols.reset();
+            var compared = null;
+            angular.forEach(datas, function (row) {
+                var has = true;
+                angular.forEach(excludes, function (item) {
+                    if (item.active) {
+                        has = has && item.filter(row);
+                    }
+                });
+                angular.forEach(includes, function (item) {
+                    if (item.active) {
+                        has = has && item.filter(row);
+                    }
+                });
+                if (has) {
+                    cols.iterate(row, rows);
+                }
+            });
+            if (compares) {
+                compared = [];
+                angular.forEach(compares, function (row) {
+                    var has = true;
+                    angular.forEach(excludes, function (item) {
+                        if (item.active) {
+                            has = has && item.filter(row);
+                        }
+                    });
+                    angular.forEach(includes, function (item) {
+                        if (item.active) {
+                            has = has && item.filter(row);
+                        }
+                    });
+                    if (has) {
+                        compared.push(row);
+                        cols.compare(row, rows);
+                    }
+                });
+            }
+            cols.makeStatic(rows);
+            // $scope.groupChart();
+        },
+        update: function() {
+            this.rows = [];
+            this.groupBy(this.datas);
+        },
+        setDatas: function(datas) {
+            this.datas = datas;
+            this.update ();
+        },
+    };
+    Table.fromDatas = function(datas) {
+        var cols = Columns.fromDatas(datas);
+        return new Table(cols);
+    };
+    return Table;
 }]);
 
 module.factory('ChartData', ['$filter', function ($filter) {

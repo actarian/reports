@@ -24,79 +24,27 @@ app.controller('TableCtrl', ['$scope', function ($scope) {
 
 }]);
 
-app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'State', 'Utils', 'Appearance', 'DataFilter', 'DataSource', 'Columns', 'Range', 'ChartData', 'colTypes', function ($scope, $filter, $location, $http, $q, State, Utils, Appearance, DataFilter, DataSource, Columns, Range, ChartData, colTypes) {
+app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'State', 'Utils', 'Appearance', 'DataFilter', 'DataSource', 'Table', 'Columns', 'Range', 'ChartData', 'colTypes', function ($scope, $filter, $location, $http, $q, State, Utils, Appearance, DataFilter, DataSource, Table, Columns, Range, ChartData, colTypes) {
     var state = $scope.state = new State();
 
     var tabs = $scope.tabs = [{
-        id: 2,
-        name: 'Colonne',
+        id: 1,
+        name: 'Columns',
         template: 'partials/report/filters/columns',
         icon: 'icon-time',
     }, {
-        id: 3,
-        name: 'Valori',
+        id: 2,
+        name: 'Values',
         template: 'partials/report/filters/values',
         icon: 'icon-time',
     }, {
-        id: 4,
-        name: 'Opzioni',
+        id: 3,
+        name: 'Options',
         template: 'partials/report/filters/flags',
         icon: 'icon-time',
     },];
     tabs.show = true;
-    tabs.description = 'partials/report/description';
-    tabs.id = 2;
-
-    function GroupColumns(rows, items, compares) {
-        // console.log(rows, items, compares);
-        cols.reset();
-        var compared = null;
-        angular.forEach(rows, function (row) {
-            var has = true;
-            angular.forEach(excludes, function (item) {
-                if (item.active) {
-                    has = has && item.filter(row);
-                }
-            });
-            angular.forEach(includes, function (item) {
-                if (item.active) {
-                    has = has && item.filter(row);
-                }
-            });
-            if (has) {
-                cols.iterate(row, items);
-            }
-        });
-        if (compares) {
-            compared = [];
-            angular.forEach(compares, function (row) {
-                var has = true;
-                angular.forEach(excludes, function (item) {
-                    if (item.active) {
-                        has = has && item.filter(row);
-                    }
-                });
-                angular.forEach(includes, function (item) {
-                    if (item.active) {
-                        has = has && item.filter(row);
-                    }
-                });
-                if (has) {
-                    compared.push(row);
-                    cols.compare(row, items);
-                }
-            });
-        }
-        cols.makeStatic(items);
-        // $scope.groupChart();
-    }
-    
-    var filters = $scope.filters = new DataFilter();
-    var ranges = $scope.ranges = [
-        new Range().currentQuarter().set(filters),
-        new Range().currentSemester(),
-        new Range().currentYear(),
-    ];
+    tabs.id = 1;
 
     function CountryCols(){
         return [{
@@ -119,6 +67,8 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
             name: 'area', value: 'area', key: 'name', type: colTypes.NUMBER, active: true, aggregate: true, color: 2,
         }, {
             name: 'population', value: 'population', key: 'name', type: colTypes.NUMBER, active: true, aggregate: true, color: 3,
+        }, {
+            name: 'abitante * km2', value: 'population / area', key: 'name', type: colTypes.NUMBER, active: true, aggregate: true, color: 4,
         }, ];
         /*
         alpha2Code: "AF"
@@ -169,29 +119,8 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
         }]
     }
 
-    var cols = $scope.cols = new Columns(CountryCols());
-    cols = $scope.cols = cols.expand({ dynamic: true, compare: false });
-    cols.showReport = true;
-    var defaults = cols.map(function (col) { 
-        return { 
-            id: col.id, 
-            active: col.active,
-        };
-    });
-    var colGroups = $scope.colGroups = [{
-        name: 'GroupBy',
-        cols: cols.getGroups()
-    }, ];
-    var valGroups = $scope.valGroups = [{
-        name: 'Aggregate',
-        cols: cols.getAggregates()
-    }];
-    var excludes = $scope.excludes = [/*{
-        name: 'Monte ore / tutti i reparti', filter: function (row) {
-            return !(row.supplier.id === 15143);
-        }, active: true,
-    }, */];
-    var includes = $scope.includes = [];
+/*
+    var filters = $scope.filters = new DataFilter();
 
     var compares;
     var source = $scope.source = new DataSource({
@@ -218,6 +147,7 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
                 item.monthShort = $filter('date')(date, 'MMM yy');
                 rows.push(item);
                 this.id++;
+                rows.push(item);
             }, this);
             return rows;
         },
@@ -228,7 +158,7 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
             deferred.resolve();
         },
         group: function (deferred) {
-            if (cols.showComparison) {
+            if (table.cols.showComparison) {
                 if (compares) {
                     GroupColumns(this.rows, this.items, compares);
                     deferred.resolve();
@@ -258,6 +188,88 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
             // console.log('sort', datasource.items, datasource.filters);
         },
     });
+*/
+
+
+    var table;
+
+    // var cols, defaults, colGroups, valGroups, excludes, includes, ranges;
+    function onDatas(datas) {
+        if (!table) {
+            table = $scope.table = Table.fromDatas(datas);
+        }
+        table.setDatas(datas);
+        /*
+        if (!cols) {
+            cols = Columns.fromDatas(datas);
+            cols = new Columns(CountryCols());
+            cols = $scope.cols = cols.expand({ dynamic: true, compare: false });
+            cols.showReport = true;
+            defaults = cols.map(function (col) { 
+                return { 
+                    id: col.id, 
+                    active: col.active,
+                };
+            });
+            colGroups = $scope.colGroups = [{
+                name: 'GroupBy',
+                cols: cols.getGroups()
+            }, ];
+            valGroups = $scope.valGroups = [{
+                name: 'Aggregate',
+                cols: cols.getAggregates()
+            }];
+            excludes = $scope.excludes = [{
+                name: 'Monte ore / tutti i reparti', filter: function (row) {
+                    return !(row.supplier.id === 15143);
+                }, active: true,
+            }, ];
+            includes = $scope.includes = [];
+            ranges = $scope.ranges = [
+                new Range().currentQuarter().set(filters),
+                new Range().currentSemester(),
+                new Range().currentYear(),
+            ];
+        } else {
+            // do update
+        }
+        */
+    }
+
+    if (state.busy()) {
+        var uri = 'api/restcountries.all.js';
+        // var uri = 'https://restcountries.eu/rest/v2/all';
+        // var uri = 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100';
+        $http.get(uri).then(function success(response) {
+            var datas = response.data;
+            // var datas = response.data.items;
+            onDatas(datas);
+            state.ready();
+        }, function(response) {
+            state.error(response);
+        });
+    }    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     $scope.setRangeDiff = function (diff) {
         angular.forEach(ranges, function (range) {
@@ -268,34 +280,34 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
         });
     };
     $scope.resetFilters = function () {
-        angular.forEach(cols, function (col, key) {
-            angular.forEach(defaults, function (item) {
+        angular.forEach(table.cols, function (col, key) {
+            angular.forEach(table.defaults, function (item) {
                 if (col.id === item.id) {
                     angular.isFunction(col.active) ? null : col.active = item.active;
                 }
             });
             col.search = null;
         });
-        cols = $scope.cols = cols.sort(function (a, b) {
+        table.cols = table.cols.sort(function (a, b) {
             return a.id - b.id;
         });
-        // cols.radios.workloads = 'supplier.name';
-        source.update();
+        // table.cols.radios.workloads = 'supplier.name';
+        table.update();
     };
     $scope.exclude = function (item) {
         item.active = !item.active;
-        source.update();
+        table.update();
     };
     $scope.include = function (item) {
         item.active = !item.active;
-        source.update();
+        table.update();
     };
     $scope.toggleCol = function (col) {
-        cols.toggleColumns(col);
-        source.update();
+        table.cols.toggleColumns(col);
+        table.update();
     };
     $scope.doFilter = function (cols) {
-        // source.update(); // doing regroup
+        // table.update(); // doing regroup
         return function (item) {
             var has = true;
             angular.forEach(cols, function (col) {
@@ -307,7 +319,7 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
         };
     };
     $scope.doFilterMultiple = function (cols) {
-        // source.update(); // doing regroup
+        // table.update(); // doing regroup
         return function (item) {
             var has = true;
             angular.forEach(cols, function (col) {
@@ -408,22 +420,14 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
     };
     $scope.$on('onDropItem', function (scope, event) {
         // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
-        var fromIndex = cols.indexOf(event.from.model);
-        var toIndex = cols.indexOf(event.to.model);
-        var item = cols[fromIndex];
-        cols.splice(fromIndex, 1);
-        cols.splice(toIndex, 0, item);
+        var fromIndex = table.cols.indexOf(event.from.model);
+        var toIndex = table.cols.indexOf(event.to.model);
+        var item = table.cols[fromIndex];
+        table.cols.splice(fromIndex, 1);
+        table.cols.splice(toIndex, 0, item);
     });
     $scope.$on('onDropOut', function (scope, event) {
         // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
     });
 
-    function Init() {
-        state.ready();
-    }    
-
-    $http.get('https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100').then(function success(response) {
-        Columns.fromSource(response.data.items);
-    });
-    
 }]);

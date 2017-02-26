@@ -38,7 +38,7 @@ gulp.task('less', function () {
  *** JS BUNDLES ***
  ******************/
 var jsbundle = [
-    './module/__begin.js',
+    './module/b.js',
     './module/module.js',
     './module/configs/configs.js',
     './module/controllers/controllers.js',
@@ -46,7 +46,7 @@ var jsbundle = [
     './module/filters/filters.js',
     './module/models/models.js',
     './module/services/services.js',
-    './module/__end.js',    
+    './module/e.js',    
 ];
 gulp.task('js:bundle:0', function() {
     return gulp.src(jsbundle, { base: '.' })
