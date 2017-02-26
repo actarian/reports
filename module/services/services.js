@@ -1101,6 +1101,41 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         },
     };
     Columns.types = colTypes;
+    Columns.fromSource = function (items) {
+        var cols = Columns.parseCols(items);
+        console.log('Columns.fromSource', cols);
+        return cols;
+    }
+    Columns.parseCols = function getColumns(items) {
+        var cols = null;
+        if (items && items.length) {
+            cols = [];
+            function parse(item, prop) {
+                if (angular.isArray(item)) {
+                    angular.forEach(item, function(value, key) {
+                        parse(value, (prop || '') + '[' + key + ']');
+                    });
+                } else if (angular.isObject(item)) {
+                    angular.forEach(item, function(value, key) {
+                        parse(value, (prop ? prop + '.' : '') + key);
+                    });
+                } else {
+                    var type = 1;
+                    if (angular.isNumber(item)) {
+                        type = 2;
+                    } else if (angular.isDate(item)) {
+                        type = 3;
+                    }
+                    cols.push({
+                        name: prop,
+                        type: type
+                    });
+                }
+            }
+            parse(items[0]);
+        }
+        return cols;
+    };
     return Columns;
 }]);
 

@@ -422,11 +422,8 @@ app.controller('ReportCtrl', ['$scope', '$filter', '$location', '$http', '$q', '
         state.ready();
     }    
 
-    /*
-    $scope.output = "A";
     $http.get('https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100').then(function success(response) {
-        $scope.output = response;
+        Columns.fromSource(response.data.items);
     });
-    */
-
+    
 }]);
