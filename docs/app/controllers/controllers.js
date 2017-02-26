@@ -190,50 +190,12 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
     });
 */
 
-
     var table;
-
-    // var cols, defaults, colGroups, valGroups, excludes, includes, ranges;
     function onDatas(datas) {
         if (!table) {
             table = $scope.table = Table.fromDatas(datas);
         }
         table.setDatas(datas);
-        /*
-        if (!cols) {
-            cols = Columns.fromDatas(datas);
-            cols = new Columns(CountryCols());
-            cols = $scope.cols = cols.expand({ dynamic: true, compare: false });
-            cols.showReport = true;
-            defaults = cols.map(function (col) { 
-                return { 
-                    id: col.id, 
-                    active: col.active,
-                };
-            });
-            colGroups = $scope.colGroups = [{
-                name: 'GroupBy',
-                cols: cols.getGroups()
-            }, ];
-            valGroups = $scope.valGroups = [{
-                name: 'Aggregate',
-                cols: cols.getAggregates()
-            }];
-            excludes = $scope.excludes = [{
-                name: 'Monte ore / tutti i reparti', filter: function (row) {
-                    return !(row.supplier.id === 15143);
-                }, active: true,
-            }, ];
-            includes = $scope.includes = [];
-            ranges = $scope.ranges = [
-                new Range().currentQuarter().set(filters),
-                new Range().currentSemester(),
-                new Range().currentYear(),
-            ];
-        } else {
-            // do update
-        }
-        */
     }
 
     if (state.busy()) {
@@ -279,74 +241,23 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
             }
         });
     };
-    $scope.resetFilters = function () {
-        angular.forEach(table.cols, function (col, key) {
-            angular.forEach(table.defaults, function (item) {
-                if (col.id === item.id) {
-                    angular.isFunction(col.active) ? null : col.active = item.active;
-                }
-            });
-            col.search = null;
-        });
-        table.cols = table.cols.sort(function (a, b) {
-            return a.id - b.id;
-        });
-        // table.cols.radios.workloads = 'supplier.name';
-        table.update();
-    };
-    $scope.exclude = function (item) {
-        item.active = !item.active;
-        table.update();
-    };
-    $scope.include = function (item) {
-        item.active = !item.active;
-        table.update();
-    };
-    $scope.toggleCol = function (col) {
-        table.cols.toggleColumns(col);
-        table.update();
-    };
-    $scope.doFilter = function (cols) {
-        // table.update(); // doing regroup
-        return function (item) {
-            var has = true;
-            angular.forEach(cols, function (col) {
-                if (col.isActive() && col.search && col.search.id !== 0) {
-                    has = has && col.getKey(item) === col.search.id;
-                }
-            }.bind(this));
-            return has;
-        };
-    };
-    $scope.doFilterMultiple = function (cols) {
-        // table.update(); // doing regroup
-        return function (item) {
-            var has = true;
-            angular.forEach(cols, function (col) {
-                if (col.isActive() && col.search.length) {
-                    has = has && col.search.indexOf(col.getKey(item)) != -1;
-                }
-            }.bind(this));
-            return has;
-        };
-    };
-    $scope.doFilterColumns = function (cols) {
-        return function (col) {
-            return col.isActive(); // col.dynamic ? (cols.showDynamics && col.active()) : col.active;
-        };
-    };
-    $scope.doOrder = function (cols) {
-        return function (item) {
-            return cols.getSortKey(item);
-        };
-    };
-    $scope.getRowClass = function (item) {
-        return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
-    };
-    $scope.onOpen = function (item) {
-        $location.path('/trattative/' + item.id);
-    };
-    $scope.excel = function (columns, rows) {
+
+    $scope.$on('onDropItem', function (scope, event) {
+        // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
+        var fromIndex = table.cols.indexOf(event.from.model);
+        var toIndex = table.cols.indexOf(event.to.model);
+        var item = table.cols[fromIndex];
+        table.cols.splice(fromIndex, 1);
+        table.cols.splice(toIndex, 0, item);
+    });
+    $scope.$on('onDropOut', function (scope, event) {
+        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
+    });
+
+
+
+
+    $scope.excel = function excel(columns, rows) {
         console.log('excel', columns, rows);
         var json = {
             name: 'Report carichi di lavoro',
@@ -411,23 +322,12 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
                 link.dispatchEvent(e);
                 return true;
             }
-             */
+            */
             return;
 
         }, function error(response) {
             state.error(response);
         });
     };
-    $scope.$on('onDropItem', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
-        var fromIndex = table.cols.indexOf(event.from.model);
-        var toIndex = table.cols.indexOf(event.to.model);
-        var item = table.cols[fromIndex];
-        table.cols.splice(fromIndex, 1);
-        table.cols.splice(toIndex, 0, item);
-    });
-    $scope.$on('onDropOut', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
-    });
-
+    
 }]);

@@ -2699,6 +2699,76 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
             this.datas = datas;
             this.update ();
         },
+
+        resetFilters: function () {
+            var table = this;
+            angular.forEach(table.cols, function (col, key) {
+                angular.forEach(table.defaults, function (item) {
+                    if (col.id === item.id) {
+                        angular.isFunction(col.active) ? null : col.active = item.active;
+                    }
+                });
+                col.search = null;
+            });
+            table.cols = table.cols.sort(function (a, b) {
+                return a.id - b.id;
+            });
+            // table.cols.radios.workloads = 'supplier.name';
+            table.update();
+        },
+        exclude: function (item) {
+            item.active = !item.active;
+            this.update();
+        },
+        include: function (item) {
+            item.active = !item.active;
+            this.update();
+        },
+        toggleCol: function (col) {
+            this.cols.toggleColumns(col);
+            this.update();
+        },
+        doFilter: function (cols) {
+            // this.update(); // doing regroup
+            return function (item) {
+                var has = true;
+                angular.forEach(cols, function (col) {
+                    if (col.isActive() && col.search && col.search.id !== 0) {
+                        has = has && col.getKey(item) === col.search.id;
+                    }
+                }.bind(this));
+                return has;
+            };
+        },
+        doFilterMultiple: function (cols) {
+            // table.update(); // doing regroup
+            return function (item) {
+                var has = true;
+                angular.forEach(cols, function (col) {
+                    if (col.isActive() && col.search.length) {
+                        has = has && col.search.indexOf(col.getKey(item)) != -1;
+                    }
+                }.bind(this));
+                return has;
+            };
+        },
+        doFilterColumns: function (cols) {
+            return function (col) {
+                return col.isActive(); // col.dynamic ? (cols.showDynamics && col.active()) : col.active;
+            };
+        },
+        doOrder: function (cols) {
+            return function (item) {
+                return cols.getSortKey(item);
+            };
+        },
+        getRowClass: function (item) {
+            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
+        },
+        onOpen: function (item) {
+            console.log('onOpen', item);
+        },
+        
     };
     Table.fromDatas = function(datas) {
         var cols = Columns.fromDatas(datas);

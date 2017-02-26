@@ -57,7 +57,7 @@
         <thead>
             <tr>
                 <!-- TH -->
-                <th class="{{appearance.tableHeaderClass(col.type)}}" ng-class="col.static.headerClass" ng-repeat="col in table.cols | filter:doFilterColumns(table.cols) as filteredColumns track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
+                <th class="{{appearance.tableHeaderClass(col.type)}}" ng-class="col.static.headerClass" ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) as filteredColumns track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
                     <div class="draggable">
                         <span class="th-label" title="{{col.name}}" ng-bind="col.name"></span>
                         <div ng-if="col.values.length > 1">
@@ -80,19 +80,19 @@
         <tbody ng-if="!state.isBusy && hasSearch()">
             <tr>
                 <!- SEARCH ->
-                <td ng-repeat="col in table.cols | filter:doFilterColumns(table.cols) track by $index">
+                <td ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) track by $index">
                     aaa
-                    <span class="tag tag-pill tag-pill-flag tag-icon-right active" ng-click="setSearch(col.key, col.search = null)" ng-if="getSearch(col.key)">
-                        <span ng-bind="getSearch(col.key)"></span> <span class="tag-icon">x</span>
+                    <span class="tag tag-pill tag-pill-flag tag-icon-right active" ng-click="setSearch(col.key, col.search = null)" ng-if="table.getSearch(col.key)">
+                        <span ng-bind="table.getSearch(col.key)"></span> <span class="tag-icon">x</span>
                     </span>
                 </td>
             </tr>
         </tbody>
         -->
-        <tbody ng-repeat="item in table.rows | filter:doFilterMultiple(table.cols) | orderBy:doOrder(table.cols) as filtered track by $index" ng-if="!state.isBusy && table.rows.length">
-            <tr class="{{getRowClass(item)}}">
+        <tbody ng-repeat="item in table.rows | filter:table.doFilterMultiple(table.cols) | orderBy:table.doOrder(table.cols) as filtered track by $index" ng-if="!state.isBusy && table.rows.length">
+            <tr class="{{table.getRowClass(item)}}">
                 <!-- TBODY > TD -->
-                <td ng-repeat="col in table.cols | filter:doFilterColumns(table.cols) track by $index" style="position: relative;" link-to="item.static[col.id].link" ng-class="col.getItemClass(item)">
+                <td ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) track by $index" style="position: relative;" link-to="item.static[col.id].link" ng-class="col.getItemClass(item)">
                     <label ng-bind="col.name"></label>
                     <span class="{{appearance.tableColumnClass(col.type)}} {{item.static[col.id].textClass}}" ng-class="{ 'text-underline': item.static[col.id].pop }" ng-bind="col.getFormatted(item)" pop="item.static[col.id].pop"></span>
                 </td>
@@ -109,7 +109,7 @@
         <tfoot ng-if="!state.isBusy && table.rows.length">
             <tr class="row-recap">
                 <!-- TFOOT > TD -->
-                <td ng-repeat="col in table.cols | filter:doFilterColumns(table.cols) track by $index" ng-class="col.static.headerClass">
+                <td ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) track by $index" ng-class="col.static.headerClass">
                     <label ng-bind="col.name" ng-if="col.aggregate || col.compare"></label>
                     <span class="tag {{item.static[col.id].textClass}}" ng-class="col.getTotalClass(filtered)" ng-bind="col.getTotal(filtered)" ng-if="col.aggregate || col.compare"></span>
                 </td>
@@ -158,11 +158,11 @@
 
 <script type="text/ng-template" id="partials/report/filters/columns">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
-        <h6 class="headline foreground light-60"><span>Colonne</span> <span class="pull-xs-right" ng-click="resetFilters()">resetta</span></h6>
+        <h6 class="headline foreground light-60"><span>Colonne</span> <span class="pull-xs-right" ng-click="table.resetFilters()">resetta</span></h6>
         <div class="row" ng-repeat="group in table.colGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
-                <span ng-repeat="col in group.cols track by $index" ng-click="toggleCol(col)">
+                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleCol(col)">
                     <span class="tag tag-pill tag-pill-flag" ng-class="{ 'active' : col.isActive() }" draggable="false">
                         <span ng-bind="col.isActive() ? '-' : '+'"></span>
                         <span ng-bind="col.name"></span>
@@ -175,11 +175,11 @@
 
 <script type="text/ng-template" id="partials/report/filters/values">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
-        <h6 class="headline foreground light-60"><span>Aggregati</span> <span class="pull-xs-right" ng-click="resetFilters()">resetta</span></h6>
+        <h6 class="headline foreground light-60"><span>Aggregati</span> <span class="pull-xs-right" ng-click="table.resetFilters()">resetta</span></h6>
         <div class="row" ng-repeat="group in table.valGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
-                <span ng-repeat="col in group.cols track by $index" ng-click="toggleCol(col)">
+                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleCol(col)">
                     <span class="tag tag-pill tag-pill-flag" ng-class="{ 'active' : col.isActive() }" draggable="false">
                         <span ng-bind="col.isActive() ? '-' : '+'"></span>
                         <span ng-bind="col.name"></span>
@@ -195,11 +195,11 @@
         <h6 class="headline foreground light-60"><span>Opzioni</span></h6>
         <div class="row margin-bottom-xs-10" ng-if="table.excludes.length">
             <label class="col-lg-3 col-form-label">Escludi</label>
-            <div class="col-lg-3" ng-repeat="item in table.excludes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;" ng-click="exclude(item)" ng-bind="item.name"></button></div>
+            <div class="col-lg-3" ng-repeat="item in table.excludes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;" ng-click="table.exclude(item)" ng-bind="item.name"></button></div>
         </div>
         <div class="row margin-bottom-xs-10" ng-if="table.includes.length">
             <label class="col-lg-3 col-form-label">Visualizza</label>
-            <div class="col-lg-3" ng-repeat="item in table.includes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;" ng-click="include(item)" ng-bind="item.name"></button></div>
+            <div class="col-lg-3" ng-repeat="item in table.includes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;" ng-click="table.include(item)" ng-bind="item.name"></button></div>
         </div>
         <div class="row">
             <label class="col-lg-3 col-form-label">&nbsp;</label>
