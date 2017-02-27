@@ -1,8 +1,8 @@
 {
-  "name": "framer",
+  "name": "reports",
   "version": "1.0.0",
-  "description": "Setup Project for FramerJs",
-  "main": "app.js",
+  "description": "reports",
+  "main": "reports.js",
   "dependencies": {
   },
   "devDependencies": {
@@ -17,8 +17,8 @@
     "gulp-watch": "^4.3.11"
   },
   "scripts": {
-    "test": "test"
+    "start": "start"
   },
-  "author": "",
+  "author": "Luca Zampetti",
   "license": "ISC"
 }

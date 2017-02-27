@@ -1,30 +1,6 @@
 ﻿/* global angular, app */
 
-app.controller('RootCtrl', ['$scope', '$location', '$timeout', '$http', '$templateCache', '$compile', '$window', 'Appearance', function ($scope, $location, $timeout, $http, $templateCache, $compile, $window, Appearance) {
-
-    $scope.appearance = Appearance;
-
-    $scope.stop = function ($event) {
-        $event.stopImmediatePropagation();
-        return true;
-    };
-    $scope.goBack = function () {
-        $window.history.back();
-    };
-
-}]);
-
-app.controller('TableCtrl', ['$scope', function ($scope) {
-
-    $scope.init = function (source) {
-        $scope.source = source;
-        $scope.state = $scope.source.state;
-        $scope.source.paging();
-    };
-
-}]);
-
-app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'State', 'Utils', 'Appearance', 'DataFilter', 'DataSource', 'Table', 'Columns', 'Range', 'ChartData', 'colTypes', function ($scope, $filter, $location, $http, $q, State, Utils, Appearance, DataFilter, DataSource, Table, Columns, Range, ChartData, colTypes) {
+app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter', 'DataSource', 'Table', 'colTypes', function ($scope, $filter, $http, State, DataFilter, DataSource, Table, colTypes) {
     var state = $scope.state = new State();
 
     var tabs = $scope.tabs = [{
@@ -45,6 +21,50 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
     },];
     tabs.show = true;
     tabs.id = 1;
+
+    var table;
+    function onDatas(datas) {
+        if (!table) {
+            table = $scope.table = Table.fromDatas(datas);
+        }
+        table.setDatas(datas);
+    }
+
+    if (state.busy()) {
+        var uri = 'api/restcountries.all.js';
+        // var uri = 'https://restcountries.eu/rest/v2/all';
+        // var uri = 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100';
+        $http.get(uri).then(function success(response) {
+            var datas = response.data;
+            // var datas = response.data.items;
+            onDatas(datas);
+            state.ready();
+        }, function(response) {
+            state.error(response);
+        });
+    }    
+
+
+    $scope.setRangeDiff = function (diff) {
+        angular.forEach(ranges, function (range) {
+            if (range.is(filters)) {
+                range.setDiff(diff);
+                range.set(filters, source);
+            }
+        });
+    };
+
+    $scope.$on('onDropItem', function (scope, event) {
+        // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
+        var fromIndex = table.cols.indexOf(event.from.model);
+        var toIndex = table.cols.indexOf(event.to.model);
+        var item = table.cols[fromIndex];
+        table.cols.splice(fromIndex, 1);
+        table.cols.splice(toIndex, 0, item);
+    });
+    $scope.$on('onDropOut', function (scope, event) {
+        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
+    });
 
     function CountryCols(){
         return [{
@@ -120,6 +140,71 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
     }
 
 /*
+    $scope.excel = function excel(columns, rows) {
+        console.log('excel', columns, rows);
+        var json = {
+            name: 'Report carichi di lavoro',
+            description: 'Report carichi di lavoro', // + $filter('date')(filters.dateFrom, 'dd MMM yyyy') + ' al ' + $filter('date')(filters.dateTo, 'dd MMM yyyy'),
+            columns: [],
+            rows: [],
+        };
+        angular.forEach(columns, function (col, index) {
+            json.columns.push({
+                index: index,
+                name: col.name,
+                format: col.getFormat(),
+            });
+        });
+        angular.forEach(rows, function (row, index) {
+            var item = [];
+            angular.forEach(columns, function (col, index) {
+                item[index] = col.getValue(row);
+                switch (col.type) {
+                    case colTypes.PERCENT:
+                    case colTypes.INCREMENT:
+                        item[index] /= 100;
+                        break;
+                }
+            });
+            json.rows.push(item);
+        });
+        var item = [];
+        angular.forEach(columns, function (col, index) {
+            if (col.aggregate) {
+                item[index] = col.getValueTotal(rows);
+                switch (col.type) {
+                    case colTypes.PERCENT:
+                    case colTypes.INCREMENT:
+                        item[index] /= 100;
+                        break;
+                }
+            } else {
+                item[index] = null;
+            }
+        });
+        json.rows.push(item);
+        Api.app.exportExcel(json).then(function success(response) {
+            var headers = response.headers();
+            // console.log(response);
+            var blob = new Blob([response.data], { type: headers['content-type'] });
+            var windowUrl = (window.URL || window.webkitURL);
+            var downloadUrl = windowUrl.createObjectURL(blob);
+            var anchor = document.createElement("a");
+            anchor.href = downloadUrl;
+            var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+            anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
+            document.body.appendChild(anchor);
+            anchor.click();
+            windowUrl.revokeObjectURL(blob);
+            anchor.remove();            
+            return;
+        }, function error(response) {
+            state.error(response);
+        });
+    };
+ */
+
+/*
     var filters = $scope.filters = new DataFilter();
 
     var compares;
@@ -190,144 +275,31 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$location', '$http', '$q', 'St
     });
 */
 
-    var table;
-    function onDatas(datas) {
-        if (!table) {
-            table = $scope.table = Table.fromDatas(datas);
-        }
-        table.setDatas(datas);
-    }
-
-    if (state.busy()) {
-        var uri = 'api/restcountries.all.js';
-        // var uri = 'https://restcountries.eu/rest/v2/all';
-        // var uri = 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100';
-        $http.get(uri).then(function success(response) {
-            var datas = response.data;
-            // var datas = response.data.items;
-            onDatas(datas);
-            state.ready();
-        }, function(response) {
-            state.error(response);
-        });
-    }    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    $scope.setRangeDiff = function (diff) {
-        angular.forEach(ranges, function (range) {
-            if (range.is(filters)) {
-                range.setDiff(diff);
-                range.set(filters, source);
-            }
-        });
-    };
-
-    $scope.$on('onDropItem', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
-        var fromIndex = table.cols.indexOf(event.from.model);
-        var toIndex = table.cols.indexOf(event.to.model);
-        var item = table.cols[fromIndex];
-        table.cols.splice(fromIndex, 1);
-        table.cols.splice(toIndex, 0, item);
-    });
-    $scope.$on('onDropOut', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
-    });
-
-
-
-
-    $scope.excel = function excel(columns, rows) {
-        console.log('excel', columns, rows);
-        var json = {
-            name: 'Report carichi di lavoro',
-            description: 'Report carichi di lavoro', // + $filter('date')(filters.dateFrom, 'dd MMM yyyy') + ' al ' + $filter('date')(filters.dateTo, 'dd MMM yyyy'),
-            columns: [],
-            rows: [],
-        };
-        angular.forEach(columns, function (col, index) {
-            json.columns.push({
-                index: index,
-                name: col.name,
-                format: col.getFormat(),
-            });
-        });
-        angular.forEach(rows, function (row, index) {
-            var item = [];
-            angular.forEach(columns, function (col, index) {
-                item[index] = col.getValue(row);
-                switch (col.type) {
-                    case colTypes.PERCENT:
-                    case colTypes.INCREMENT:
-                        item[index] /= 100;
-                        break;
-                }
-            });
-            json.rows.push(item);
-        });
-        var item = [];
-        angular.forEach(columns, function (col, index) {
-            if (col.aggregate) {
-                item[index] = col.getValueTotal(rows);
-                switch (col.type) {
-                    case colTypes.PERCENT:
-                    case colTypes.INCREMENT:
-                        item[index] /= 100;
-                        break;
-                }
-            } else {
-                item[index] = null;
-            }
-        });
-        json.rows.push(item);
-        Api.app.exportExcel(json).then(function success(response) {
-            var headers = response.headers();
-            // console.log(response);
-            var blob = new Blob([response.data], { type: headers['content-type'] });
-            var windowUrl = (window.URL || window.webkitURL);
-            var downloadUrl = windowUrl.createObjectURL(blob);
-            var anchor = document.createElement("a");
-            anchor.href = downloadUrl;
-            var fileNamePattern = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-            anchor.download = fileNamePattern.exec(headers['content-disposition'])[1];
-            document.body.appendChild(anchor);
-            anchor.click();
-            windowUrl.revokeObjectURL(blob);
-            anchor.remove();
-            /*
-            //Dispatching click event.
-            if (document.createEvent) {
-                var e = document.createEvent('MouseEvents');
-                e.initEvent('click', true, true);
-                link.dispatchEvent(e);
-                return true;
-            }
-            */
-            return;
-
-        }, function error(response) {
-            state.error(response);
-        });
-    };
-    
 }]);
+
+
+/*
+app.controller('RootCtrl', ['$scope', '$http', '$window', 'Appearance', function ($scope, $http, $window, Appearance) {
+
+    $scope.appearance = Appearance;
+
+    $scope.stop = function ($event) {
+        $event.stopImmediatePropagation();
+        return true;
+    };
+    $scope.goBack = function () {
+        $window.history.back();
+    };
+
+}]);
+
+app.controller('TableCtrl', ['$scope', function ($scope) {
+
+    $scope.init = function (source) {
+        $scope.source = source;
+        $scope.state = $scope.source.state;
+        $scope.source.paging();
+    };
+
+}]);
+*/

@@ -28,11 +28,12 @@
     <link href="//projectwo.websolute.it/css/app.min.css" rel="stylesheet">
     
 </head>
-<body ng-controller="RootCtrl" ng-cloak>
+<body>
     <div class="page">
-        <div ng-controller="DemoCtrl" ng-include="'partials/demo.html'">loading...</ng-view>
+        <div ng-controller="DemoCtrl" ng-include="'partials/demo.html'" ng-cloak>loading...</ng-view>
     </div>
 
+    <!-- TEMPLATES -->
     <script type="text/ng-template" id="partial/pagination">
         <div class="pagination-group" ng-if="source.pages > 1">
             <nav>
@@ -68,14 +69,14 @@
         </ul>
     </script>
 
-    <link href="//file.myfontastic.com/BpeQsEmGgN4fQsygXVZfdY/icons.css" rel="stylesheet">
+    <!-- ANGULAR -->
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-sanitize.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-route.min.js"></script>
     <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.7/angular-messages.min.js"></script>
-    
+    <!-- MODULE REPORTS -->
     <script src="modules/report.js" type="text/javascript"></script>
-    
+    <!-- DEMO -->
     <script src="app/app.js" type="text/javascript"></script>
     <script src="app/configs/configs.js" type="text/javascript"></script>
     <script src="app/controllers/controllers.js" type="text/javascript"></script>
@@ -83,6 +84,8 @@
     <script src="app/filters/filters.js" type="text/javascript"></script>
     <script src="app/models/models.js" type="text/javascript"></script>
     <script src="app/services/services.js" type="text/javascript"></script>
-    
+    <!-- FONTS -->
+    <link href="//file.myfontastic.com/BpeQsEmGgN4fQsygXVZfdY/icons.css" rel="stylesheet">  
+
 </body>
 </html>
