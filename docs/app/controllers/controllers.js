@@ -24,26 +24,47 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
 
     var table;
     function onDatas(datas) {
-        if (!table) {
+        // if (!table) {
             table = $scope.table = Table.fromDatas(datas);
-        }
+        // }
         table.setDatas(datas);
     }
 
-    if (state.busy()) {
-        var uri = 'api/restcountries.all.js';
-        // var uri = 'https://restcountries.eu/rest/v2/all';
-        // var uri = 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100';
-        $http.get(uri).then(function success(response) {
-            var datas = response.data;
-            // var datas = response.data.items;
-            onDatas(datas);
-            state.ready();
-        }, function(response) {
-            state.error(response);
-        });
-    }    
+    function load() {
+        if (state.busy()) {
+            var uri = json.uri;
+            console.log('load', uri);
+            $http.get(uri).then(function success(response) {
+                var datas = response.data;
+                if (!angular.isArray(datas) || !datas.length > 1) {
+                    angular.forEach(datas, function(data) {
+                        if (angular.isArray(data)) {
+                            datas = data;
+                        }
+                    });
+                }
+                console.log(datas.length);
+                // var datas = response.data.items;
+                onDatas(datas);
+                state.ready();
+            }, function(response) {
+                state.error(response);
+            });
+        }    
+    }
 
+    var json = $scope.json = {
+        uris: [
+            'api/restcountries.all.js',
+            'https://restcountries.eu/rest/v2/all',
+            'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100',
+        ],
+    }
+    json.uri = json.uris[0];
+
+    load();
+
+    $scope.load = load;
 
     $scope.setRangeDiff = function (diff) {
         angular.forEach(ranges, function (range) {
@@ -66,6 +87,12 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
     });
 
+    $scope.stop = function ($event) {
+        $event.stopImmediatePropagation();
+        return true;
+    };
+    
+/*
     function CountryCols(){
         return [{
             name: 'region', value: 'region', key: 'region', type: colTypes.TEXT, active: true, hasSearch: true, groupBy: true,
@@ -90,28 +117,6 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         }, {
             name: 'abitante * km2', value: 'population / area', key: 'name', type: colTypes.NUMBER, active: true, aggregate: true, color: 4,
         }, ];
-        /*
-        alpha2Code: "AF"
-        alpha3Code: "AFG"
-        altSpellings: Array[2]
-        area: 652230
-        borders: Array[6]
-        callingCodes: Array[1]
-        capital: "Kabul"
-        currencies: Array[1]
-        demonym: "Afghan"
-        gini: 27.8
-        languages: Array[3]
-        latlng: Array[2]
-        name: "Afghanistan"
-        nativeName: "افغانستان"
-        numericCode: "004"
-        population: 27657145
-        region: "Asia"
-        timezones: Array[1]
-        topLevelDomain: Array[1]
-        translations: Object
-        */
     }
     function GitCols(){
         return [{
@@ -138,8 +143,6 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
             name: 'C = B / A', value: 'B / A', raw: 'C', key: 'id', type: colTypes.NUMBER, active: true, aggregate: true
         }]
     }
-
-/*
     $scope.excel = function excel(columns, rows) {
         console.log('excel', columns, rows);
         var json = {
@@ -203,7 +206,6 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         });
     };
  */
-
 /*
     var filters = $scope.filters = new DataFilter();
 

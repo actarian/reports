@@ -42,104 +42,6 @@ module.constant('colTypes', {
 
 /* global angular, module */
 
-var aid = 0; // application unique id counter using for dev
-
-module.directive('state', ['$timeout', function ($timeout) {
-    return {
-        restrict: 'EA',
-        template: '<button type="button" class="btn btn-sm btn-primary btn-block-md-down" ng-class="stateClass()" ng-disabled="stateDisabled()"><span ng-transclude></span></button>',
-        transclude: true,
-        replace: true,
-        scope: {
-            state: '=',
-        },
-        link: function (scope, element, attributes, model) {
-            scope.stateClass = function () {
-                if (scope.state.button === element) {
-                    var sclass = {
-                        busy: scope.state.isBusy,
-                        successing: scope.state.isSuccessing,
-                        success: scope.state.isSuccess,
-                        errorring: scope.state.isErroring,
-                        error: scope.state.isError,
-                    };
-                    // console.log('stateClass', sclass);
-                    return sclass;
-                } else {
-                    return null;
-                }
-            };
-            scope.stateDisabled = function () {
-                var disabled = (scope.state.button && scope.state.button !== element); // || scope.$parent.$eval(attributes.onValidate);
-                // console.log('stateDisabled', disabled);
-                return disabled;
-            };
-            function onClick() {
-                $timeout(function () {
-                    if (!scope.$parent.$eval(attributes.onValidate)) {
-                        console.log('state.onClick', attributes.onValidate, attributes.onClick);
-                        scope.state.button = element;
-                        return scope.$parent.$eval(attributes.onClick);
-                    } else {
-                        scope.$parent.$eval('form.$setSubmitted()');
-                    }
-                });
-            };
-            function addListeners() {
-                element.on('touchstart click', onClick);
-            };
-            function removeListeners() {
-                element.off('touchstart click', onClick);
-            };
-            scope.$on('$destroy', function () {
-                removeListeners();
-            });
-            addListeners();
-        }
-    }
-}]);
-
-module.directive('sortable', ['$timeout', function ($timeout) {    
-    return {
-        restrict: 'A',
-        scope: {
-            source: '=sortable',
-            key: '@sortableKey',
-            sort: '=?',
-        },
-        template: '<th ng-class="{ \'sorted-up\': sort == 1, \'sorted-down\': sort == -1 }" ng-transclude></th>',
-        transclude: true,
-        replace: true,
-        link: function (scope, element, attributes, model) {
-            scope.sort = scope.sort || 0;
-            function onSort() {
-                scope.sort = scope.source.getSort(scope.key);
-                // console.log('sortable.onSort', scope.key, scope.source.filters.sort);
-            }
-            scope.$watchCollection('source.filters.sort', onSort);
-            onSort();
-            function onTap() {
-                if (scope.source.state.enabled()) {
-                    var sort = scope.sort ? (scope.sort * -1) : 1;
-                    scope.source.setSort(scope.key, sort).then(function (response) {
-                        scope.sort = sort;
-                    });
-                }
-            }
-            function addListeners() {
-                element.on('touchstart click', onTap);
-            };
-            function removeListeners() {
-                element.off('touchstart click', onTap);
-            };
-            scope.$on('$destroy', function () {
-                removeListeners();
-            });
-            addListeners();
-        }
-    }
-}]);
-
 module.directive('draggableItem', ['$parse', '$timeout', 'Utils', 'Style', 'ElementRect', 'Droppables', function ($parse, $timeout, Utils, Style, ElementRect, Droppables) {
 
     return {
@@ -270,33 +172,6 @@ module.directive('droppableItem', ['$parse', 'Utils', 'Style', 'Droppables', fun
             });
         }
     }
-}]);
-
-module.directive('onClickOut', ['$document', '$parse', '$timeout', 'Utils', function ($document, $parse, $timeout, Utils) {
-    return {
-        restrict: 'A',
-        link: function (scope, element, attributes, model) {
-            function onClick(e) {
-                if (Utils.getClosestElement(e.target, element[0]) === null) {
-                    $timeout(function () {                    
-                        console.log('onClickOut', attributes.onClickOut, scope.cols.showValues);
-                        var onClickOut = $parse(attributes.onClickOut);
-                        onClickOut(scope);
-                    });
-                }
-            }
-            function addListeners() {
-                angular.element($document).on('click', onClick);
-            };
-            function removeListeners() {
-                angular.element($document).off('click', onClick);
-            };
-            scope.$on('$destroy', function () {
-                removeListeners();
-            });
-            addListeners();
-        }
-    };
 }]);
 
 module.directive('toggler', ['$document', '$parse', '$timeout', 'Utils', function ($document, $parse, $timeout, Utils) {
@@ -561,6 +436,188 @@ module.provider('filterWatcher', function () {
 });
 
 /* global angular, module */
+
+module.factory('State', ['$timeout', function ($timeout) {
+    function State() {
+        this.isReady = false;
+        this.idle();
+    }
+    State.prototype = {
+        idle: function () {
+            this.isBusy = false;
+            this.isError = false;
+            this.isErroring = false;
+            this.isSuccess = false;
+            this.isSuccessing = false;
+            this.button = null;
+            this.errors = [];
+        },
+        enabled: function () {
+            return !this.isBusy && !this.isErroring && !this.isSuccessing;
+        },
+        busy: function () {
+            if (!this.isBusy) {
+                this.isBusy = true;
+                this.isError = false;
+                this.isErroring = false;
+                this.isSuccess = false;
+                this.isSuccessing = false;
+                this.errors = [];
+                // console.log('State.busy', this);
+                return true;
+            } else {
+                return false;
+            }
+        },
+        success: function () {
+            this.isBusy = false;
+            this.isError = false;
+            this.isErroring = false;
+            this.isSuccess = true;
+            this.isSuccessing = true;
+            this.errors = [];
+            $timeout(function () {
+                this.isSuccessing = false;
+                this.button = null;
+            }.bind(this), 1000);
+        },
+        error: function (error) {
+            this.isBusy = false;
+            this.isError = true;
+            this.isErroring = true;
+            this.isSuccess = false;
+            this.isSuccessing = false;
+            this.errors.push(error);
+            $timeout(function () {
+                this.isErroring = false;
+                this.button = null;
+            }.bind(this), 1000);
+        },
+        ready: function () {
+            this.isReady = true;
+            this.success();
+        },
+        errorMessage: function () {
+            return this.isError ? this.errors[this.errors.length - 1] : null;
+        },
+        submitClass: function () {
+            return {
+                busy: this.isBusy,
+                ready: this.isReady,
+                successing: this.isSuccessing,
+                success: this.isSuccess,
+                errorring: this.isErroring,
+                error: this.isError,
+            };
+        },
+        submitMessage: function (idleMessage, busyMessage, successMessage, errorMessage) {
+            idleMessage = idleMessage || 'Submit';
+            if (this.isBusy) {
+                return busyMessage || idleMessage;
+            } else if (this.isSuccess) {
+                return successMessage || idleMessage;
+            } else if (this.isError) {
+                return errorMessage || idleMessage;
+            } else {
+                return idleMessage;
+            }
+        },
+    };
+    return State;
+}]);
+
+module.factory('Range', ['$filter', function ($filter) {
+    function Range(data) {
+        this.type = Range.types.QUARTER;
+        data ? angular.extend(this, data) : null;
+    }
+    Range.prototype = {
+        currentQuarter: function () {
+            this.diff = 0;
+            return this.setQuarter();
+        },
+        currentSemester: function () {
+            this.diff = 0;
+            return this.setSemester();
+        },
+        currentYear: function () {
+            this.diff = 0;
+            return this.setYear();
+        },
+        setQuarter: function () {
+            this.type = Range.types.QUARTER;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 3 * this.diff);
+            var year = now.getFullYear();
+            var quarter = Math.floor(now.getMonth() / 3);
+            this.from = new Date(year, quarter * 3, 1);
+            this.to = new Date(year, quarter * 3 + 3, 0);
+            return this;
+        },
+        setSemester: function () {
+            this.type = Range.types.SEMESTER;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 6 * this.diff);
+            var year = now.getFullYear();
+            var semester = Math.floor(now.getMonth() / 6);
+            this.from = new Date(year, semester * 6, 1);
+            this.to = new Date(year, semester * 6 + 6, 0);
+            return this;
+        },
+        setYear: function () {
+            this.type = Range.types.YEAR;
+            var now = new Date();
+            now.setMonth(now.getMonth() + 12 * this.diff);
+            var year = now.getFullYear();
+            this.from = new Date(year, 0, 1);
+            this.to = new Date(year, 12, 0);
+            return this;
+        },
+        getName: function () {
+            switch (this.type) {
+                case Range.types.QUARTER:
+                    return 'Trimestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
+                    break;
+                case Range.types.SEMESTER:
+                    return 'Semestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
+                    break;
+                case Range.types.YEAR:
+                    return 'Anno ' + $filter('date')(this.from, 'yyyy');
+                    break;
+            }
+        },
+        setDiff: function(diff) {
+            this.diff += diff;
+            switch (this.type) {
+                case Range.types.QUARTER:
+                    return this.setQuarter();
+                    break;
+                case Range.types.SEMESTER:
+                    return this.setSemester();
+                    break;
+                case Range.types.YEAR:
+                    return this.setYear();
+                    break;
+            }
+        },
+        set: function (filters, source) {
+            filters.dateFrom = this.from;
+            filters.dateTo = this.to;
+            source ? source.setDates(filters.dateFrom, filters.dateTo) : null;
+            return this;
+        },
+        is: function (filters) {
+            return  filters.dateFrom.getTime() == this.from.getTime() &&
+                    filters.dateTo.getTime() == this.to.getTime();
+        },
+    };
+    Range.types = {
+        QUARTER: 1,
+        SEMESTER: 2,
+        YEAR: 3,
+    }
+    return Range;
+}]);
 
 module.factory('Animate', [function () {
     function Animate(callback, useTimeout) {
@@ -1098,188 +1155,6 @@ module.factory('Utils', ['$compile', '$controller', 'Vector', 'Md5', function ($
         }
     });
     return Utils;
-}]);
-
-module.factory('State', ['$timeout', function ($timeout) {
-    function State() {
-        this.isReady = false;
-        this.idle();
-    }
-    State.prototype = {
-        idle: function () {
-            this.isBusy = false;
-            this.isError = false;
-            this.isErroring = false;
-            this.isSuccess = false;
-            this.isSuccessing = false;
-            this.button = null;
-            this.errors = [];
-        },
-        enabled: function () {
-            return !this.isBusy && !this.isErroring && !this.isSuccessing;
-        },
-        busy: function () {
-            if (!this.isBusy) {
-                this.isBusy = true;
-                this.isError = false;
-                this.isErroring = false;
-                this.isSuccess = false;
-                this.isSuccessing = false;
-                this.errors = [];
-                // console.log('State.busy', this);
-                return true;
-            } else {
-                return false;
-            }
-        },
-        success: function () {
-            this.isBusy = false;
-            this.isError = false;
-            this.isErroring = false;
-            this.isSuccess = true;
-            this.isSuccessing = true;
-            this.errors = [];
-            $timeout(function () {
-                this.isSuccessing = false;
-                this.button = null;
-            }.bind(this), 1000);
-        },
-        error: function (error) {
-            this.isBusy = false;
-            this.isError = true;
-            this.isErroring = true;
-            this.isSuccess = false;
-            this.isSuccessing = false;
-            this.errors.push(error);
-            $timeout(function () {
-                this.isErroring = false;
-                this.button = null;
-            }.bind(this), 1000);
-        },
-        ready: function () {
-            this.isReady = true;
-            this.success();
-        },
-        errorMessage: function () {
-            return this.isError ? this.errors[this.errors.length - 1] : null;
-        },
-        submitClass: function () {
-            return {
-                busy: this.isBusy,
-                ready: this.isReady,
-                successing: this.isSuccessing,
-                success: this.isSuccess,
-                errorring: this.isErroring,
-                error: this.isError,
-            };
-        },
-        submitMessage: function (idleMessage, busyMessage, successMessage, errorMessage) {
-            idleMessage = idleMessage || 'Submit';
-            if (this.isBusy) {
-                return busyMessage || idleMessage;
-            } else if (this.isSuccess) {
-                return successMessage || idleMessage;
-            } else if (this.isError) {
-                return errorMessage || idleMessage;
-            } else {
-                return idleMessage;
-            }
-        },
-    };
-    return State;
-}]);
-
-module.factory('Range', ['$filter', function ($filter) {
-    function Range(data) {
-        this.type = Range.types.QUARTER;
-        data ? angular.extend(this, data) : null;
-    }
-    Range.prototype = {
-        currentQuarter: function () {
-            this.diff = 0;
-            return this.setQuarter();
-        },
-        currentSemester: function () {
-            this.diff = 0;
-            return this.setSemester();
-        },
-        currentYear: function () {
-            this.diff = 0;
-            return this.setYear();
-        },
-        setQuarter: function () {
-            this.type = Range.types.QUARTER;
-            var now = new Date();
-            now.setMonth(now.getMonth() + 3 * this.diff);
-            var year = now.getFullYear();
-            var quarter = Math.floor(now.getMonth() / 3);
-            this.from = new Date(year, quarter * 3, 1);
-            this.to = new Date(year, quarter * 3 + 3, 0);
-            return this;
-        },
-        setSemester: function () {
-            this.type = Range.types.SEMESTER;
-            var now = new Date();
-            now.setMonth(now.getMonth() + 6 * this.diff);
-            var year = now.getFullYear();
-            var semester = Math.floor(now.getMonth() / 6);
-            this.from = new Date(year, semester * 6, 1);
-            this.to = new Date(year, semester * 6 + 6, 0);
-            return this;
-        },
-        setYear: function () {
-            this.type = Range.types.YEAR;
-            var now = new Date();
-            now.setMonth(now.getMonth() + 12 * this.diff);
-            var year = now.getFullYear();
-            this.from = new Date(year, 0, 1);
-            this.to = new Date(year, 12, 0);
-            return this;
-        },
-        getName: function () {
-            switch (this.type) {
-                case Range.types.QUARTER:
-                    return 'Trimestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
-                    break;
-                case Range.types.SEMESTER:
-                    return 'Semestre ' + $filter('date')(this.from, 'MMM') + '-' + $filter('date')(this.to, 'MMM') + ' ' + $filter('date')(this.from, 'yyyy');
-                    break;
-                case Range.types.YEAR:
-                    return 'Anno ' + $filter('date')(this.from, 'yyyy');
-                    break;
-            }
-        },
-        setDiff: function(diff) {
-            this.diff += diff;
-            switch (this.type) {
-                case Range.types.QUARTER:
-                    return this.setQuarter();
-                    break;
-                case Range.types.SEMESTER:
-                    return this.setSemester();
-                    break;
-                case Range.types.YEAR:
-                    return this.setYear();
-                    break;
-            }
-        },
-        set: function (filters, source) {
-            filters.dateFrom = this.from;
-            filters.dateTo = this.to;
-            source ? source.setDates(filters.dateFrom, filters.dateTo) : null;
-            return this;
-        },
-        is: function (filters) {
-            return  filters.dateFrom.getTime() == this.from.getTime() &&
-                    filters.dateTo.getTime() == this.to.getTime();
-        },
-    };
-    Range.types = {
-        QUARTER: 1,
-        SEMESTER: 2,
-        YEAR: 3,
-    }
-    return Range;
 }]);
 
 module.factory('Vector', function () {
