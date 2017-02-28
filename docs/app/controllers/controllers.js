@@ -19,7 +19,7 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         template: 'partials/report/filters/flags',
         icon: 'icon-time',
     },];
-    tabs.show = true;
+    tabs.show = false;
     tabs.id = 1;
 
     var table;

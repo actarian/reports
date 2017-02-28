@@ -1,5 +1,15 @@
 
-<div class="container">
+<style>
+    .filters {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        z-index: 100;
+    }
+</style>
+
+<section class="container margin-top-xs-20">
 
     <form class="form-horizontal">
         <div class="form-group form-group-lg">
@@ -25,32 +35,14 @@
         </div>
     </form>
 
-</div>
+</section>
 
 <main class="container-fluid">
-
-    <!-- TABS -->
+        
     <div class="content report">
-        <div class="filters">
-            <div class="container-fluid filters-bar">
-                <div class="container-fluid maxw-lg">
-                    <button type="button" class="btn btn-outline-foreground btn-dashboard" ng-class="{ active: tabs.id == tab.id }" ng-mouseenter="tabs.id = tab.id"
-                        ng-repeat="tab in tabs track by $index"><i ng-class="tab.icon"></i> <span ng-bind="tab.name"></span></button>
-                </div>
-            </div>
-            <div class="filters-content" ng-show="tabs.show">
-                <div class="container-fluid maxw-lg" ng-repeat="tab in tabs track by $index">
-                    <div ng-include="tab.template" ng-show="tabs.id === tab.id"></div>
-                </div>
-            </div>
-        </div>
-
+        
         <!-- INFO -->
         <div class="container-fluid maxw-lg text-xs-center">
-            <span ng-click="tabs.show = !tabs.show">
-            <i ng-class="{ 'icon-arrow-top' : tabs.show, 'icon-arrow-bottom' : !tabs.show }"></i>
-        </span>
-            <br />
             <div ng-include="tabs.description"></div>
         </div>
 
@@ -78,6 +70,25 @@
 
         <!-- ERRORS -->
         <div class="container-fluid" ng-include="'partials/errors'" ng-if="!model.status"></div>
+
+        <!-- FILTERS -->    
+        <div class="filters">
+            <div class="container-fluid filters-bar">
+                <div class="container-fluid maxw-lg">
+                    <button type="button" class="btn btn-outline-foreground btn-dashboard" ng-class="{ active: tabs.id == tab.id }" ng-mouseenter="tabs.id = tab.id"
+                        ng-repeat="tab in tabs track by $index"><i ng-class="tab.icon"></i> <span ng-bind="tab.name"></span>
+                    </button>
+                    <span class="pull-right pull-xs-right" ng-click="tabs.show = !tabs.show">
+                        <i ng-class="{ 'icon-arrow-bottom' : tabs.show, 'icon-arrow-top' : !tabs.show }"></i>
+                    </span>                    
+                </div>
+            </div>
+            <div class="filters-content" ng-show="tabs.show">
+                <div class="container-fluid maxw-lg" ng-repeat="tab in tabs track by $index">
+                    <div ng-include="tab.template" ng-show="tabs.id === tab.id"></div>
+                </div>
+            </div>
+        </div>
 
 </main>
 
