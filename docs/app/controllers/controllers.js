@@ -7,17 +7,17 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         id: 1,
         name: 'Columns',
         template: 'partials/report/filters/columns',
-        icon: 'icon-time',
+        icon: 'icon-columns',
     }, {
         id: 2,
         name: 'Values',
         template: 'partials/report/filters/values',
-        icon: 'icon-time',
+        icon: 'icon-values',
     }, {
         id: 3,
         name: 'Options',
         template: 'partials/report/filters/flags',
-        icon: 'icon-time',
+        icon: 'icon-options',
     },];
     tabs.show = false;
     tabs.id = 1;
