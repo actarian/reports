@@ -43,14 +43,14 @@ gulp.task('sass:compile', function () {
             console.log('sass:compile:error', error);
         }))
         .pipe(rename('reports.css'))
-        .pipe(gulp.dest('./dist')) // save .css
+        .pipe(gulp.dest('./docs/dist')) // save .css
         // .pipe(autoprefixer({ browsers: browserlist })) // autoprefixer
         .pipe(cssmin())
         // .pipe(sourcemaps.write('.')) // save .map
         .pipe(rename({
             extname: '.min.css'
         }))
-        .pipe(gulp.dest('./dist')); // save .min.css
+        .pipe(gulp.dest('./docs/dist')); // save .min.css
 });
 gulp.task('sass:watch', function () {
     return gulp.watch('./sass/**/*.scss', ['sass:compile'])
@@ -82,7 +82,7 @@ gulp.task('js:bundle:0', function () {
         .pipe(rename({
             dirname: '', // flatten directory
         }))
-        .pipe(concat('./dist/reports.js')) // concat bundle
+        .pipe(concat('./docs/dist/reports.js')) // concat bundle
         .pipe(gulp.dest('.')) // save .js
         .pipe(sourcemaps.init())
         .pipe(uglify()) // { preserveComments: 'license' }
