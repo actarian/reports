@@ -42,7 +42,7 @@ gulp.task('sass:compile', function () {
         .pipe(sass().on('sass:compile.error', function (error) {
             console.log('sass:compile:error', error);
         }))
-        .pipe(rename('reports.css'))
+        .pipe(rename('repotable.css'))
         .pipe(gulp.dest('./docs/dist')) // save .css
         // .pipe(autoprefixer({ browsers: browserlist })) // autoprefixer
         .pipe(cssmin())
@@ -82,7 +82,7 @@ gulp.task('js:bundle:0', function () {
         .pipe(rename({
             dirname: '', // flatten directory
         }))
-        .pipe(concat('./docs/dist/reports.js')) // concat bundle
+        .pipe(concat('./docs/dist/repotable.js')) // concat bundle
         .pipe(gulp.dest('.')) // save .js
         .pipe(sourcemaps.init())
         .pipe(uglify()) // { preserveComments: 'license' }

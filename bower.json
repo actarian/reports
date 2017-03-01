@@ -1,9 +1,9 @@
 {
-  "name": "reports",
-  "description": "reports",
-  "main": "reports.js",
+  "name": "repotable",
+  "description": "repotable",
+  "main": "repotable.js",
   "license": "ISC",
-  "homepage": "https://actarian.github.io/reports/",
+  "homepage": "https://actarian.github.io/repotable/",
   "private": true,
   "ignore": [
     "**/.*",

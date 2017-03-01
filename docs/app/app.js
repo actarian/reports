@@ -2,16 +2,6 @@
 
 "use strict";
 
-var app = angular.module('app', ['reports', 'ngSanitize', 'ngMessages']); //, 'ngSilent', 'ui.bootstrap', 'relativeDate', 'ngFileUpload', 'textAngular', 'uiSwitch', 'rzModule', 'ngJsonExplorer', 'chart.js']);
+var app = angular.module('app', ['repotable', 'ngSanitize', 'ngMessages']);
 
-app.config(['$httpProvider', function ($httpProvider) {
-    
-    // $httpProvider.defaults.withCredentials = true;
-
-}]);
-
-/*
-app.run(['$rootScope', function ($rootScope) {
-
-}]);
-*/
+// app.config(['$httpProvider', function ($httpProvider) { }]);

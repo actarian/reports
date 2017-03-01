@@ -1,6 +1,6 @@
 ﻿/* global angular, app */
 
-app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter', 'DataSource', 'Table', 'colTypes', function ($scope, $filter, $http, State, DataFilter, DataSource, Table, colTypes) {
+app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'colTypes', function ($scope, $filter, $http, State, Table, colTypes) {
     var state = $scope.state = new State();
 
     var tabs = $scope.tabs = [{
@@ -19,38 +19,13 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         template: 'partials/report/filters/flags',
         icon: 'icon-options',
     },];
-    tabs.show = false;
+    tabs.opened = false;
     tabs.id = 1;
 
     var table;
     function onDatas(datas) {
-        // if (!table) {
-            table = $scope.table = Table.fromDatas(datas);
-        // }
+        table = $scope.table = Table.fromDatas(datas);
         table.setDatas(datas);
-    }
-
-    function load() {
-        if (state.busy()) {
-            var uri = json.uri;
-            console.log('load', uri);
-            $http.get(uri).then(function success(response) {
-                var datas = response.data;
-                if (!angular.isArray(datas) || !datas.length > 1) {
-                    angular.forEach(datas, function(data) {
-                        if (angular.isArray(data)) {
-                            datas = data;
-                        }
-                    });
-                }
-                console.log(datas.length);
-                // var datas = response.data.items;
-                onDatas(datas);
-                state.ready();
-            }, function(response) {
-                state.error(response);
-            });
-        }    
     }
 
     var json = $scope.json = {
@@ -61,19 +36,20 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         ],
     }
     json.uri = json.uris[0];
-
+    var load = $scope.load = function() {
+        if (state.busy()) {
+            var uri = json.uri;
+            $http.get(uri).then(function success(response) {
+                var datas = response.data;
+                // var datas = response.data.items;
+                onDatas(datas);
+                state.ready();
+            }, function (response) {
+                state.error(response);
+            });
+        }
+    }
     load();
-
-    $scope.load = load;
-
-    $scope.setRangeDiff = function (diff) {
-        angular.forEach(ranges, function (range) {
-            if (range.is(filters)) {
-                range.setDiff(diff);
-                range.set(filters, source);
-            }
-        });
-    };
 
     $scope.$on('onDropItem', function (scope, event) {
         // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
@@ -91,7 +67,7 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
         $event.stopImmediatePropagation();
         return true;
     };
-    
+
 /*
     function CountryCols(){
         return [{
@@ -205,103 +181,5 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'DataFilter',
             state.error(response);
         });
     };
- */
-/*
-    var filters = $scope.filters = new DataFilter();
-
-    var compares;
-    var source = $scope.source = new DataSource({
-        unpaged: true,
-        uri: function () {
-            return 'api/restcountries.all.js';
-            return 'https://restcountries.eu/rest/v2/all';
-            return 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100';
-        },
-        filters: filters,
-        resolveItems: function (items, rows, comparing) {
-            // items = items.items;
-            angular.forEach(items, function (item, index) {
-                item.id = this.id;
-                var date = new Date(item.created_at);
-                if (comparing) {
-                    date = new Date(date.setFullYear(date.getFullYear() + 1));
-                }
-                item.dt = date;
-                item.dt.setDate(1);
-                item.dt.setHours(0, 0, 0, 0);
-                item.dt = item.dt.getTime();
-                item.month = $filter('date')(date, '(yyyy MM) MMMM');
-                item.monthShort = $filter('date')(date, 'MMM yy');
-                rows.push(item);
-                this.id++;
-                rows.push(item);
-            }, this);
-            return rows;
-        },
-        resolve: function (deferred) {
-            compares = null;
-            this.id = 1;
-            this.resolveItems(this.response.data, this.rows);
-            deferred.resolve();
-        },
-        group: function (deferred) {
-            if (table.cols.showComparison) {
-                if (compares) {
-                    GroupColumns(this.rows, this.items, compares);
-                    deferred.resolve();
-                } else {
-                    // loadAndParseCompares
-                    var from = new Date(filters.dateFrom.getTime());
-                    var to = new Date(filters.dateTo.getTime());
-                    var params = {
-                        dateFrom: new Date(from.setFullYear(from.getFullYear() - 1)),
-                        dateTo: new Date(to.setFullYear(to.getFullYear() - 1)),
-                    };
-                    Api.reports.negotiations(params).then(function success(response) {
-                        compares = this.resolveItems(response, [], true);
-                        GroupColumns(this.rows, this.items, compares);
-                        deferred.resolve();
-                    }.bind(this));
-                }
-            } else {
-                GroupColumns(this.rows, this.items);
-                deferred.resolve();
-            }
-        },
-        search: function (datasource) {
-            // console.log('search', datasource.items, datasource.filters);
-        },
-        sort: function (datasource) {
-            // console.log('sort', datasource.items, datasource.filters);
-        },
-    });
 */
-
 }]);
-
-
-/*
-app.controller('RootCtrl', ['$scope', '$http', '$window', 'Appearance', function ($scope, $http, $window, Appearance) {
-
-    $scope.appearance = Appearance;
-
-    $scope.stop = function ($event) {
-        $event.stopImmediatePropagation();
-        return true;
-    };
-    $scope.goBack = function () {
-        $window.history.back();
-    };
-
-}]);
-
-app.controller('TableCtrl', ['$scope', function ($scope) {
-
-    $scope.init = function (source) {
-        $scope.source = source;
-        $scope.state = $scope.source.state;
-        $scope.source.paging();
-    };
-
-}]);
-*/

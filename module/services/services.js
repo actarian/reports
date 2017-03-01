@@ -1,421 +1,14 @@
 ﻿/* global angular, module */
 
-module.factory('DataFilter', ['$filter', function ($filter) {
-    function DataFilter(data) {
-        /*
-        this.dateFrom = null;
-        this.dateTo = null;
-        this.search = null;
-        this.status = null;
-        this.sort = null;
-        */
-        data ? angular.extend(this, data) : null;
+module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($parse, $filter, Utils, colTypes) {
+    var totalTypes = {
+        SUM: 1,
+        MIN: 2,
+        MAX: 3,
+        AVG: 4,
     }
-    DataFilter.prototype = {
-        getObjectParams: function (obj) {
-            var a = [];
-            if (obj) {
-                for (var p in obj) {
-                    a.push({ name: p, value: obj[p] });
-                }
-            }
-            return a;
-        },
-        getParams: function (source) {
-            var post = {}, value;
-            for (var p in this) {
-                switch (p) {
-                    case 'dateFrom':
-                    case 'dateTo':
-                    case 'status':
-                        value = this[p];
-                        if (value !== undefined) {
-                            post[p] = value;
-                        }
-                        break;
-                    case 'search':
-                    case 'sort':
-                        var json = JSON.stringify(this.getObjectParams(this[p]), null, '');
-                        post[p] = window.btoa(json);
-                        break;
-                }
-            }
-            if (!source.unpaged) {
-                post.page = source.page;
-                post.size = source.size;
-            }
-            // console.log('DataFilter.getParams', post);
-            return post;
-        },
-        getMonths: function () {
-            var months = [];
-            if (this.dateFrom && this.dateTo) {
-                var range = [this.dateFrom, this.dateTo];
-                range = range.sort(function (a, b) {
-                    return a.getTime() - b.getTime();
-                });
-                function monthDiff(a, b) {
-                    var months;
-                    months = (b.getFullYear() - a.getFullYear()) * 12;
-                    months -= a.getMonth() + 1;
-                    months += b.getMonth() + 1; // we should add + 1 to get correct month number
-                    months ++;
-                    // console.log(months);
-                    return months <= 0 ? 0 : months;
-                }
-                var diff = Math.max(1, monthDiff(range[0], range[1]));
-                // console.log('getMonths', range[0], range[1], diff);
-                var i = 0;
-                while (i < diff) {
-                    var date = new Date(range[0].getFullYear(), range[0].getMonth() + i, 1);
-                    months.push({
-                        id: date.getTime(),
-                        name: $filter('date')(date, '(yyyy MM) MMMM'),
-                        nameShort: $filter('date')(date, 'MMM yy'),
-                    });
-                    i++;
-                };
-            }
-            return months;
-        },
-    };
-    return DataFilter;
-}]);
-
-module.factory('DataSource', ['$q', '$http', '$rootScope', '$location', 'State', 'DataFilter', function ($q, $http, $rootScope, $location, State, DataFilter) {
-    var PAGES_FIRST = 1;
-    var PAGES_SIZE = 7;
-    var PAGES_MAX = Number.POSITIVE_INFINITY;
-    function DataSource(data) {
-        this.state = new State();
-        this.page = PAGES_FIRST;
-        this.size = PAGES_SIZE;
-        this.pages = PAGES_MAX;
-        this.count = 0;
-        this.maxPages = 10;
-        this.items = [];
-        this.rows = [];
-        this.allrows = [];
-        this.steps = [];
-        this.filters = new DataFilter({});
-        this.uri = '/api/items/paging';
-        this.unpaged = false; // if true skip pagination
-        data ? angular.extend(this, data) : null;        
-    }
-    DataSource.prototype = {
-        resolve: function (deferred) {
-            angular.forEach(this.response.data, function (item) {
-                this.push(item);
-            }, this.rows);
-            deferred.resolve();
-        },
-        group: function (deferred) {
-            deferred.resolve();
-        },
-        next: function ($d) {
-            if (this.steps.length) {
-                var deferred = $q.defer();
-                deferred.promise.then(function (response) {
-                    this.next($d);
-                }.bind(this), function (response) {
-                    this.error(response);
-                }.bind(this));
-                var step = this.steps.shift();
-                step.call(this, deferred);
-            } else {
-                $d.resolve();
-            }
-        },
-        when: function () {
-            var deferred = $q.defer();
-            angular.forEach(Array.prototype.slice.call(arguments), function(step) {
-                this.push(step);
-            }, this.steps);
-            this.next(deferred);
-            return deferred.promise;
-        },
-        unallowed: function (error) {
-            this.deferred.reject(error);
-            this.deferred = null;
-            this.state.error(error);
-            $location.$$lastRequestedPath = $location.path(); // $route.current.$$route.originalPath;
-            $location.path('/signin');
-        },
-        error: function (response) {
-            // typeof (err) === "string" ? err = { status: status } : (err == null ? err = { status: status } : err.status = status);
-            var error = response ? { message: response.data ? response.data.message : "error", status: response.status } : null;
-            this.deferred.reject(error);
-            this.deferred = null;
-            this.state.error(error);
-        },
-        parseHeader: function () {
-            var responseHeader = this.response.headers('X-Pagination');
-            var responseView = responseHeader ? JSON.parse(responseHeader) : null;
-            if (responseView) {
-                this.page = responseView.page;
-                this.size = responseView.size;
-                this.count = responseView.count;
-                this.pages = responseView.pages;
-            } else {
-                this.page = PAGES_FIRST;
-                this.size = this.size || PAGES_SIZE;
-                this.count = this.response.data.length;
-                this.pages = Math.ceil(this.count / this.size);
-            }
-            this.pagination = this.getPages();
-        },
-        getUri: function () {
-            return angular.isFunction(this.uri) ? this.uri() : this.uri;
-        },
-        getParams: function () {
-            return { params: this.filters.getParams(this) };
-        },
-        get: function () {
-            $http.get(this.getUri(), this.getParams()).then(function (response) {
-                this.rows.length = 0;
-                this.items.length = 0;
-                this.response = response;
-                this.parseHeader();
-                this.when(this.resolve, this.group).then(function () {
-                    this.allrows = this.allrows.concat(this.rows);
-                    $rootScope.$broadcast('onDataSourceUpdate', this);
-                    this.state.success();
-                    this.deferred.resolve(this.rows);
-                    this.deferred = null;
-                }.bind(this));
-            }.bind(this), function (response) {
-                this.error(response);
-            }.bind(this));
-        },
-        update: function ($d) {
-            this.items = [];
-            if (this.state.busy()) {
-                this.when(this.group).then(function () {
-                    this.state.success();
-                }.bind(this));
-            }
-        },
-        paging: function ($d) {
-            var deferred = this.deferred = ($d || $q.defer());
-            if ((this.page <= this.pages || $d !== undefined) && this.state.busy()) {
-                this.opened = null;
-                this.get();
-            }
-            return deferred.promise;
-        },
-        filter: function () {
-            var deferred = $q.defer();
-            this.allrows = [];
-            this.paging(deferred);
-            return deferred.promise;
-        },
-        add: function (item) {
-            this.rows.push(item);
-            this.allrows.push(item);
-            this.update();
-            this.count++;
-            this.pages = Math.ceil(this.count / this.size);
-        },
-        remove: function (item) {
-            var i = this.rows.indexOf(item);
-            if (i !== -1) {
-                this.rows.splice(i, 1);
-            }
-            i = this.allrows.indexOf(item);
-            if (i !== -1) {
-                this.allrows.splice(i, 1);
-            }
-            this.update();
-            this.count--;
-            this.pages = Math.ceil(this.count / this.size);
-        },
-        prevPage: function () {
-            var page = this.page - 1;
-            if (page > 0 && page <= this.pages) {
-                this.page = page;
-                this.paging();
-            }
-        },
-        nextPage: function () {
-            var page = this.page + 1;
-            if (page > 0 && page <= this.pages) {
-                this.page = page;
-                this.paging();
-            }
-        },
-        gotoPage: function (page) {
-            if (page > 0 && page <= this.pages) {
-                this.page = page;
-                this.paging();
-            }
-        },
-        firstPage: function () {
-            if (this.page !== 1) {
-                this.page = 1;
-                this.paging();
-            }
-        },
-        lastPage: function () {
-            if (this.page !== this.pages) {
-                this.page = this.pages;
-                this.paging();
-            }
-        },
-        hasMany: function () {
-            return this.pages > this.maxPages;
-        },
-        hasMorePagesBehind: function () {
-            var startingIndex = Math.max(0, this.page - this.maxPages);
-            return startingIndex > 0;
-        },
-        hasMorePagesNext: function () {
-            var endingIndex = Math.max(0, this.page - this.maxPages) + this.maxPages;
-            return endingIndex < this.pages;
-        },
-        isPage: function (number) {
-            return this.page === number;
-        },
-        hasPages: function () {
-            return this.pages > 0 && this.pages < PAGES_MAX;
-        },
-        getPages: function () {
-            var a = [], i;
-            if (this.hasPages()) {
-                var startingIndex = Math.max(0, this.page - this.maxPages);
-                var endingIndex = Math.min(this.pages, startingIndex + this.maxPages);
-                i = startingIndex;
-                while (i < endingIndex) {
-                    a.push({ number: (i + 1) });
-                    i++;
-                }
-            }
-            return a;
-        },
-        openClose: function (index) {
-            if (this.opened === index) {
-                this.opened = null;
-            } else {
-                this.opened = index;
-            }
-        },
-        setSort: function (key, sort) {
-            var deferred = $q.defer();
-            if (!this.state.isBusy) {
-                this.filters.sort = {};
-                this.filters.sort[key] = sort;
-                if (angular.isFunction(this.sort)) {
-                    this.sort(this);
-                    deferred.resolve(this.rows);
-                } else {
-                    this.allrows = [];
-                    this.paging(deferred);
-                }
-            }
-            return deferred.promise;
-        },
-        getSort: function (key) {
-            if (this.filters.sort) {
-                return this.filters.sort[key] || 0;
-            } else {
-                return 0;
-            }
-        },
-        hasSort: function () {
-            if (this.filters.sort) {
-                var has = false;
-                angular.forEach(this.filters.sort, function (value) {
-                    has = has || value;
-                });
-                return has;
-            } else {
-                return false;
-            }
-        },
-        setSearch: function (key, search) {
-            var deferred = $q.defer();
-            if (!this.state.isBusy) {
-                this.filters.search = {};
-                if (search && search !== '') {
-                    this.filters.search[key] = search;
-                }
-                if (angular.isFunction(this.search)) {
-                    this.search(this);
-                    deferred.resolve(this.rows);
-                } else {
-                    this.allrows = [];
-                    this.paging(deferred);
-                }
-            }
-            return deferred.promise;
-        },
-        getSearch: function (key) {
-            if (this.filters.search) {
-                return this.filters.search[key] || 0;
-            } else {
-                return 0;
-            }
-        },
-        hasSearch: function () {
-            if (this.filters.search) {
-                var has = false;
-                angular.forEach(this.filters.search, function (value) {
-                    has = has || (value && value !== '');
-                });
-                return has;
-            } else {
-                return false;
-            }
-        },
-        setDateFrom: function (date) {
-            var deferred = $q.defer();
-            if (!this.state.isBusy) {
-                this.filters.dateFrom = date || '';
-                if (angular.isFunction(this.dateFrom)) {
-                    this.dateFrom(this);
-                    deferred.resolve(this.rows);
-                } else {
-                    this.allrows = [];
-                    this.paging(deferred);
-                }
-            }
-            return deferred.promise;
-        },
-        getDateFrom: function () {
-            return this.filters.dateFrom || null;
-        },
-        setDateTo: function (date) {
-            var deferred = $q.defer();
-            if (!this.state.isBusy) {
-                this.filters.dateTo = date || '';
-                if (angular.isFunction(this.dateTo)) {
-                    this.dateTo(this);
-                    deferred.resolve(this.rows);
-                } else {
-                    this.allrows = [];
-                    this.paging(deferred);
-                }
-            }
-            return deferred.promise;
-        },
-        getDateTo: function () {
-            return this.filters.dateTo || null;
-        },
-        setDates: function (from, to) {
-            var deferred = $q.defer();
-            if (!this.state.isBusy) {
-                this.filters.dateFrom = from || '';
-                this.filters.dateTo = to || '';
-                this.allrows = [];
-                this.paging(deferred);
-            }
-            return deferred.promise;
-        },
-    };
-    return DataSource;
-}]);
-
-module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($parse, $filter, Utils, colTypes) {        
     function Column(data) {
+        this.typeTotal = this.typeTotal || totalTypes.SUM;
         data ? angular.extend(this, data) : null;
         // PREPARE GETTER SETTERS
         if (angular.isFunction(this.value)) {
@@ -474,7 +67,22 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             return this;
         },
         addTotal: function (item, row) {
-            this.setters.raw(item, (this.getters.raw(item) || 0) + (this.getters.value(row) || 0));
+            var a = (this.getters.raw(item) || 0);
+            var b = (this.getters.value(row) || 0);
+            switch (this.typeTotal) {
+                case totalTypes.MIN:
+                    this.setters.raw(item, Math.min(a, b));
+                    break;
+                case totalTypes.MAX:
+                    this.setters.raw(item, Math.max(a, b));
+                    break;
+                case totalTypes.AVG:
+                    var n = 0;
+                    this.setters.raw(item, (b + (a * n)) / (n + 1)); // (newVal + (avg * n)) / (n+1)
+                    break;
+                default:
+                    this.setters.raw(item, a + b);
+            }
             return this;
         },
         addCount: function (item, row) {
@@ -483,7 +91,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                 if (item != row) {
                     v = (this.getters.raw(item) || 0) + 1;
                 } else {
-                    v = 1;                    
+                    v = 1;
                 }
                 this.setters.raw(item, v);
             }
@@ -519,9 +127,38 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                     value = (current - previous) / previous * 100;
                 }
             } else {
-                angular.forEach(filtered, function (item) {
-                    value += this.getRaw(item) || 0;
+                switch (this.typeTotal) {
+                    case totalTypes.SUM:
+                        value = 0;
+                        break;
+                    case totalTypes.MIN:
+                        value = Number.POSITIVE_INFINITY;
+                        break;
+                    case totalTypes.MAX:
+                        value = Number.NEGATIVE_INFINITY;
+                        break;
+                    case totalTypes.AVG:
+                        break;
+                }
+                angular.forEach(filtered, function (item, i) {
+                    var a = value;
+                    var b = (this.getRaw(item) || 0);
+                    switch (this.typeTotal) {
+                        case totalTypes.SUM:
+                            value = a + b;
+                            break;
+                        case totalTypes.MIN:
+                            value = a < b ? a : b;
+                            break;
+                        case totalTypes.MAX:
+                            value = a > b ? a : b;
+                            break;
+                        case totalTypes.AVG:
+                            value = (b + (a * i)) / (i + 1);
+                            break;
+                    }
                 }.bind(this));
+                (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) ? value = 0 : null;
             }
             this.total = value;
             return value;
@@ -592,6 +229,9 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                 case colTypes.INCREMENT:
                     value = angular.isNumber(value) ? (value > 0 ? '+' : '') + $filter('customNumber')(value, 2, ' %') : (value || '-');
                     break;
+                case colTypes.DATE:
+                    value = $filter('date')(value, 'yyyy-MM-dd');
+                    break;
             }
             return value;
         },
@@ -617,7 +257,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                 case colTypes.COSTS:
                     format = '#,###.00 €';
                     break;
-                case colTypes.PERCENT:                
+                case colTypes.PERCENT:
                     format = '0.00%';
                     break;
                 case colTypes.INCREMENT:
@@ -654,7 +294,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             return cc.join(' ');
         },
         getCellClass: function (item) {
-            var cc = [];            
+            var cc = [];
             angular.forEach(this, function (value, key) {
                 if (value === true) {
                     cc.push(key);
@@ -773,11 +413,14 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                 col.id = index + 1;
                 list.push(new Column(col));
             });
-        }        
+        }
         angular.extend(list, Columns.prototype);
         return list;
     }
     Columns.prototype = {
+        show: {
+            table: true, // defaults
+        },
         getCount: function () {
             var i = 0;
             angular.forEach(this, function (col) {
@@ -846,7 +489,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                             type: colTypes.PERCENT,
                             dynamic: true,
                             active: function () {
-                                return array.showDynamics && col.active;
+                                return array.show.dynamic && col.active;
                             },
                             col: col,
                         }));
@@ -866,7 +509,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                             compare: true,
                             dynamic: true,
                             active: function () {
-                                return array.showComparison && col.active;
+                                return array.show.compare && col.active;
                             },
                             col: col,
                         }));
@@ -890,7 +533,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                             compare: true,
                             dynamic: true,
                             active: function () {
-                                return array.showComparison && col.active;
+                                return array.show.compare && col.active;
                             },
                             col: col,
                         }));
@@ -907,16 +550,6 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             var array = [];
             angular.forEach(this, function (col, index) {
                 if (col.groupBy) {
-                    array.push(col);
-                }
-            });
-            angular.extend(array, Columns.prototype);
-            return array;
-        },
-        getCounters: function () {
-            var array = [];
-            angular.forEach(this, function (col, index) {
-                if (col.count) {
                     array.push(col);
                 }
             });
@@ -963,6 +596,16 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
+        getCounters: function () {
+            var array = [];
+            angular.forEach(this, function (col, index) {
+                if (col.count) {
+                    array.push(col);
+                }
+            });
+            angular.extend(array, Columns.prototype);
+            return array;
+        },
         reset: function () {
             this.groups = {};
             angular.forEach(this, function (col) {
@@ -980,7 +623,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                 };
             });
             angular.forEach(this, function (col, index) {
-                if (col.static.active || col.dynamic) {
+                if (col.static.active || col.dynamic || col.always) {
                     angular.forEach(items, function (item) {
                         col.makeStatic(item);
                         col.groupBy ? col.addValue(item) : null;
@@ -1028,7 +671,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             row = angular.copy(row);
             var item = this.unique(row, items);
             this.addTotals(item, row);
-        },        
+        },
         compare: function (row, items) {
             row = angular.copy(row);
             angular.forEach(this, function (col) {
@@ -1047,7 +690,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         },
         addTotals: function (item, row, comparing) {
             angular.forEach(this, function (col) {
-                if (col.isActive() && (comparing ? col.compare : !col.compare)) {
+                if ((col.isActive() || col.always) && (comparing ? col.compare : !col.compare)) {
                     if (col.count) {
                         col.addCount(item, row);
                     } else if (comparing || col.aggregate) {
@@ -1079,30 +722,17 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         searchDisabled: function (item, col, filtered) {
             var id = item.id, t = this;
             var has = false, index = 0;
-            while(index < filtered.length) {
+            while (index < filtered.length) {
                 has = has || col.getKey(filtered[index]) === id;
                 if (has) {
                     index = filtered.length;
                 } else {
-                    index ++;
+                    index++;
                 }
             }
-            return !has;    
-        },
-        setMode: function (mode) {
-            this[mode] = !this[mode];
-            switch (mode) {
-                case 'showDynamics':
-                    this.showComparison = false;
-                    break;
-                case 'showComparison':
-                    this.showDynamics = false;
-                    break;
-            }
-            return this[mode];
+            return !has;
         },
     };
-    Columns.types = colTypes;
     Columns.fromDatas = function (datas) {
         return Columns.parseCols(datas);
     }
@@ -1112,22 +742,14 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             cols = [];
             function parse(item, prop) {
                 if (angular.isArray(item)) {
-                    angular.forEach(item, function(value, key) {
+                    angular.forEach(item, function (value, key) {
                         parse(value, (prop || '') + '[' + key + ']');
                     });
                 } else if (angular.isObject(item)) {
-                    angular.forEach(item, function(value, key) {
+                    angular.forEach(item, function (value, key) {
                         parse(value, (prop ? prop + '.' : '') + key);
                     });
                 } else {
-                    /*
-                    ID: 1,
-                    DATE: 4,
-                    STATUS: 7,
-                    NUMBER: 10,
-                    PERCENT: 13,
-                    DOUBLE: 20,
-                    */
                     var col = {
                         value: prop,
                         type: colTypes.TEXT,
@@ -1150,16 +772,16 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         }
         return cols;
     };
+    Columns.types = colTypes;
     return Columns;
 }]);
 
-module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($parse, Columns, Column, colTypes) {
+module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Columns, colTypes) {
     function Table(cols) {
         this.cols = new Columns(cols).expand({ dynamic: true, compare: false });
-        this.cols.showReport = true;
-        this.defaults = cols.map(function (col) { 
-            return { 
-                id: col.id, 
+        this.defaults = cols.map(function (col) {
+            return {
+                id: col.id,
                 active: col.active,
             };
         });
@@ -1170,24 +792,26 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
         this.valGroups = [{
             name: 'Aggregate',
             cols: this.cols.getAggregates()
-        }];
+        }, ];
         this.excludes = [];
         this.includes = [];
-        /*
-        this.excludes = [{
-            name: 'Monte ore / tutti i reparti', filter: function (row) {
-                return !(row.supplier.id === 15143);
-            }, active: true,
-        }, ];
-        */
     }
     Table.prototype = {
-        groupBy: function (datas, compares) {
-            // console.log(datas, compares);
+        setDatas: function (datas, compares) {
+            this.datas = datas;
+            this.compares = compares;
+            this.update();
+        },
+        update: function () {
+            this.rows = [];
+            this.groupBy(this.datas);
+        },
+        groupBy: function (datas) {
             var rows = this.rows;
             var cols = this.cols;
             var excludes = this.excludes;
             var includes = this.includes;
+            var compares = this.compares;
             cols.reset();
             var compared = null;
             angular.forEach(datas, function (row) {
@@ -1227,17 +851,10 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
                 });
             }
             cols.makeStatic(rows);
-            // $scope.groupChart();
+            if (this.after && angular.isFunction(this.after)) {
+                this.after(rows);
+            }
         },
-        update: function() {
-            this.rows = [];
-            this.groupBy(this.datas);
-        },
-        setDatas: function(datas) {
-            this.datas = datas;
-            this.update ();
-        },
-
         resetFilters: function () {
             var table = this;
             angular.forEach(table.cols, function (col, key) {
@@ -1251,7 +868,7 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
             table.cols = table.cols.sort(function (a, b) {
                 return a.id - b.id;
             });
-            // table.cols.radios.workloads = 'supplier.name';
+            // table.cols.radios.workloads = 'supplier.name'; //??? default radios ???
             table.update();
         },
         exclude: function (item) {
@@ -1292,7 +909,7 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
         },
         doFilterColumns: function (cols) {
             return function (col) {
-                return col.isActive(); // col.dynamic ? (cols.showDynamics && col.active()) : col.active;
+                return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
             };
         },
         doOrder: function (cols) {
@@ -1306,146 +923,42 @@ module.factory('Table', ['$parse', 'Columns', 'Column', 'colTypes', function ($p
         onOpen: function (item) {
             console.log('onOpen', item);
         },
-        
+        toggle: function (mode) {
+            var value = null;
+            if (this.cols) {
+                var show = this.cols.show;
+                show[mode] = !show[mode];
+                switch (mode) {
+                    case 'dynamic':
+                        show.compare = false;
+                        break;
+                    case 'compare':
+                        show.dynamic = false;
+                        break;
+                }
+                value = show[mode];
+            }
+            return value;
+        },
+        has: function (mode) {
+            return (this.cols ? this.cols.show[mode] : null);
+        },
     };
-    Table.fromDatas = function(datas) {
+    Table.fromDatas = function (datas) {
+        if (!angular.isArray(datas) || !datas.length > 1) {
+            angular.forEach(datas, function (data) {
+                if (angular.isArray(data)) {
+                    datas = data;
+                }
+            });
+        }
+        if (!angular.isArray(datas)) {
+            datas = [datas];
+        }
         var cols = Columns.fromDatas(datas);
         return new Table(cols);
     };
     return Table;
-}]);
-
-module.factory('ChartData', ['$filter', function ($filter) {
-    function ChartData(data) {
-        var defaults = {
-            type: 'chart-line',
-            labels: [],
-            series: [],
-            data: [],
-            options: {
-                bezierCurve: false,
-                elements: {
-                    line: {
-                        tension: 0,
-                    }
-                },
-                scaleLabel: function (label) {
-                    return $filter('currency')(label.value);
-                },
-                tooltipTemplate: function (data) {
-                    return $filter('currency')(data.value);
-                },
-                scales: {
-                    yAxes: [{
-                        gridLines: {
-                            display: false
-                        },
-                        ticks: {
-                            min: 0,
-                            // max: 3,
-                            // stepSize: 1,
-                            callback: function (value, index, values) {
-                                return $filter('customNumber')(value, 2, ' W');
-                            }
-                        }
-                    }],
-                    callbacks: {
-                        label: function (label) {
-                            console.log('b');
-                            return $filter('customNumber')(label.value, 2, ' W');
-                        }
-                    }
-                },
-                tooltips: {
-                    callbacks: {
-                        title: function (tooltipItems, data) {
-                            return '';
-                        },
-                        label: function (tooltipItem, data) {
-                            var label = data.datasets[tooltipItem.datasetIndex].label;
-                            var datasetLabel = data.datasets[tooltipItem.datasetIndex].data[tooltipItem.index];
-                            return label + ': ' + $filter('customNumber')(datasetLabel, 2, ' W');
-                        },
-                    }
-                },
-            },
-            onClick: function (points, evt) {
-                console.log('chart', points, evt);
-            },
-            datasetOverride: [],
-        };
-        angular.extend(this, defaults);
-        data ? angular.extend(this, data) : null;
-    }
-    ChartData.prototype = {
-        getObjectParams: function (obj) {
-            var a = [];
-            if (obj) {
-                for (var p in obj) {
-                    a.push({ name: p, value: obj[p] });
-                }
-            }
-            return a;
-        },
-        getParams: function (source) {
-            var post = {}, value;
-            for (var p in this) {
-                switch (p) {
-                    case 'dateFrom':
-                    case 'dateTo':
-                    case 'status':
-                        value = this[p];
-                        if (value !== undefined) {
-                            post[p] = value;
-                        }
-                        break;
-                    case 'search':
-                    case 'sort':
-                        var json = JSON.stringify(this.getObjectParams(this[p]), null, '');
-                        post[p] = window.btoa(json);
-                        break;
-                }
-            }
-            if (!source.unpaged) {
-                post.page = source.page;
-                post.size = source.size;
-            }
-            // console.log('ChartData.getParams', post);
-            return post;
-        },
-        getMonths: function () {
-            var months = [];
-            if (this.dateFrom && this.dateTo) {
-                var range = [this.dateFrom, this.dateTo];
-                range = range.sort(function (a, b) {
-                    return a.getTime() - b.getTime();
-                });
-                function monthDiff(a, b) {
-                    var months;
-                    months = (b.getFullYear() - a.getFullYear()) * 12;
-                    months -= a.getMonth() + 1;
-                    months += b.getMonth() + 1; // we should add + 1 to get correct month number
-                    months++;
-                    // console.log(months);
-                    return months <= 0 ? 0 : months;
-                }
-                var diff = Math.max(1, monthDiff(range[0], range[1]));
-                // console.log('getMonths', range[0], range[1], diff);
-                var i = 0;
-                while (i < diff) {
-                    var date = new Date(range[0].getFullYear(), range[0].getMonth() + i, 1);
-                    months.push({
-                        id: date.getTime(),
-                        name: $filter('date')(date, '(yyyy MM) MMMM'),
-                        nameShort: $filter('date')(date, 'MMM yy'),
-                    });
-                    i++;
-                };
-            }
-            return months;
-        },
-    };
-    return ChartData;
 }]);
 
 module.service('Droppables', ['ElementRect', function (ElementRect) {

@@ -1,8 +1,8 @@
 {
-  "name": "reports",
+  "name": "repotable",
   "version": "1.0.0",
-  "description": "reports",
-  "main": "reports.js",
+  "description": "repotable",
+  "main": "repotable.js",
   "dependencies": {},
   "devDependencies": {
     "gulp": "^3.9.1",

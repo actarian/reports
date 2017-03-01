@@ -1,7 +1,7 @@
-# report
-Report 
+# repotable
+Repotable 
 
-[demo](https://actarian.github.io/reports/)
+[demo](https://actarian.github.io/repotable/)
 
 > npm install
 

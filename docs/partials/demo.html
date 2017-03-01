@@ -1,4 +1,3 @@
-
 <style>
     .filters {
         position: fixed;
@@ -16,12 +15,12 @@
             <!-- <label for="uri" class="col-sm-12 col-form-label col-form-label-lg">json</label> -->
             <div class="col-sm-12">
                 <div class="input-group input-group-lg">
-                    <div class="input-group-btn" ng-class="{ show: table.showDropdown }" toggler="table.showDropdown" value="true" target="#dropdown">
+                    <div class="input-group-btn" ng-class="{ show: table.dropdown }" toggler="table.dropdown" value="1000" target="#dropdown">
                         <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                             json
                         </button>
-                        <div class="dropdown-menu" id="dropdown" ng-if="table.showDropdown"> 
-                            <a class="dropdown-item" href="#" ng-click="(json.uri = json.uris[0]) && load()">Countries</a> 
+                        <div class="dropdown-menu" id="dropdown" ng-if="table.dropdown === 1000">
+                            <a class="dropdown-item" href="#" ng-click="(json.uri = json.uris[0]) && load()">Countries</a>
                             <a class="dropdown-item" href="#" ng-click="(json.uri = json.uris[2]) && load()">Git</a>
                         </div>
                     </div>
@@ -29,7 +28,7 @@
                     <span class="input-group-btn">
                         <button class="btn btn-secondary" type="button" ng-click="load()">Go!</button> 
                     </span>
-                 </div>
+                </div>
 
             </div>
         </div>
@@ -61,9 +60,9 @@
 </section>
 
 <main class="container-fluid">
-        
+
     <div class="content report">
-        
+
         <!-- INFO -->
         <div class="container-fluid maxw-lg text-xs-center">
             <div ng-include="tabs.description"></div>
@@ -75,7 +74,7 @@
         <div class="loading" ng-if="state.isBusy"></div>
 
         <!-- TABLE -->
-        <div class="container-fluid" style="display: flex;" ng-if="table.cols.showReport">
+        <div class="container-fluid" style="display: flex;" ng-if="table.has('table')">
             <section class="container-fluid shadow section-bordered margin-bottom-xs-40">
                 <h6 class="headline foreground light-60"><span>Report</span></h6>
                 <!-- <div ng-controller="TableCtrl" ng-init="init(source, filters)" ng-include="'partials/report'"></div> -->
@@ -85,7 +84,7 @@
 
         <!-- CHART -->
         <div class="container-fluid maxw-lg">
-            <section class="container-fluid shadow section-bordered margin-bottom-xs-40" ng-if="table.cols.showChart">
+            <section class="container-fluid shadow section-bordered margin-bottom-xs-40" ng-if="table.has('chart')">
                 <h6 class="headline foreground light-60"><span>Grafico</span></h6>
                 <div chart="chart" ng-include="'partials/report/chart'"></div>
             </section>
@@ -94,19 +93,19 @@
         <!-- ERRORS -->
         <div class="container-fluid" ng-include="'partials/errors'" ng-if="!model.status"></div>
 
-        <!-- FILTERS -->    
+        <!-- FILTERS -->
         <div class="filters">
             <div class="container-fluid filters-bar">
                 <div class="container-fluid maxw-lg">
                     <button type="button" class="btn btn-outline-foreground btn-dashboard" ng-class="{ active: tabs.id == tab.id }" ng-mouseenter="tabs.id = tab.id"
                         ng-repeat="tab in tabs track by $index"><i ng-class="tab.icon"></i> <span ng-bind="tab.name"></span>
-                    </button>
-                    <span class="pull-right pull-xs-right" ng-click="tabs.show = !tabs.show">
-                        <i ng-class="{ 'icon-arrow-bottom' : tabs.show, 'icon-arrow-top' : !tabs.show }"></i>
-                    </span>                    
+                        </button>
+                        <span class="pull-right pull-xs-right" ng-click="tabs.opened = !tabs.opened">
+                        <i ng-class="{ 'icon-arrow-bottom' : tabs.opened, 'icon-arrow-top' : !tabs.opened }"></i>
+                    </span>
                 </div>
             </div>
-            <div class="filters-content" ng-show="tabs.show">
+            <div class="filters-content" ng-show="tabs.opened">
                 <div class="container-fluid maxw-lg" ng-repeat="tab in tabs track by $index">
                     <div ng-include="tab.template" ng-show="tabs.id === tab.id"></div>
                 </div>
@@ -126,18 +125,17 @@
                     <div class="draggable">
                         <span class="th-label" title="{{col.name}}" ng-bind="col.name"></span>
                         <div ng-if="col.values.length > 1">
-                            <button class="btn btn-xs btn-outline-foreground btn-block dropdown-toggle" toggler="table.cols.showValues" value="col.id"
-                                target="#nav-col-{{col.id}}">
+                            <button class="btn btn-xs btn-outline-foreground btn-block dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
                                 <span>filtra</span>
                             </button>
-                            <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.cols.showValues == col.id">
+                            <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.id">
                                 <li class="nav-item" ng-repeat="item in col.values" ng-click="stop($event) && col.searchToggle(item)">
                                     <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="item.active" /> <span class="label" ng-bind="item.name">-</span></label>
                                 </li>
                             </ul>
                         </div>
                     </div>
-                </th>
+                    </th>
             </tr>
         </thead>
         <!--
@@ -162,27 +160,27 @@
                     <label ng-bind="col.name"></label>
                     <span class="{{appearance.tableColumnClass(col.type)}} {{item.static[col.id].textClass}}" ng-class="{ 'text-underline': item.static[col.id].pop }"
                         ng-bind="col.getFormatted(item)" pop="item.static[col.id].pop"></span>
-                </td>
+                        </td>
             </tr>
-        </tbody>
-        <tbody ng-if="!state.isBusy && !table.rows.length">
-            <tr>
-                <!-- NO RESULTS -->
-                <td class="text-xs-center" colspan="{{table.cols.getCount()}}">
-                    <p>nessun risultato</p>
-                </td>
-            </tr>
-        </tbody>
-        <tfoot ng-if="!state.isBusy && table.rows.length">
-            <tr class="row-recap">
-                <!-- TFOOT > TD -->
-                <td ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) track by $index" ng-class="col.static.headerClass">
-                    <label ng-bind="col.name" ng-if="col.aggregate || col.compare"></label>
-                    <span class="tag {{item.static[col.id].textClass}}" ng-class="col.getTotalClass(filtered)" ng-bind="col.getTotal(filtered)"
-                        ng-if="col.aggregate || col.compare"></span>
-                </td>
-            </tr>
-        </tfoot>
+            </tbody>
+            <tbody ng-if="!state.isBusy && !table.rows.length">
+                <tr>
+                    <!-- NO RESULTS -->
+                    <td class="text-xs-center" colspan="{{table.cols.getCount()}}">
+                        <p>nessun risultato</p>
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot ng-if="!state.isBusy && table.rows.length">
+                <tr class="row-recap">
+                    <!-- TFOOT > TD -->
+                    <td ng-repeat="col in table.cols | filter:table.doFilterColumns(table.cols) track by $index" ng-class="col.static.headerClass">
+                        <label ng-bind="col.name" ng-if="col.aggregate || col.compare"></label>
+                        <span class="tag {{item.static[col.id].textClass}}" ng-class="col.getTotalClass(filtered)" ng-bind="col.getTotal(filtered)"
+                            ng-if="col.aggregate || col.compare"></span>
+                    </td>
+                </tr>
+            </tfoot>
     </table>
     <div ng-include="'partials/errors'"></div>
     <div class="row" ng-if="filtered.length">
@@ -190,46 +188,6 @@
             <button type="button" ng-click="excel(filteredColumns, filtered)" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
         </div>
     </div>
-</script>
-
-<script type="text/ng-template" id="partials/report/filters/interval">
-    <section class="container-fluid shadow section-bordered margin-bottom-xs-10" ng-class="{ 'section-disabled': state.isBusy }">
-        <h6 class="headline foreground light-60"><span ng-bind="title"></span></h6>
-        <div class="row margin-bottom-xs-10">
-            <label class="col-lg-3 col-form-label">
-                <span>Periodo</span>
-                <span class="pull-xs-right">
-                    <i class="icon-arrow-left" ng-click="setRangeDiff(-1)"></i>
-                    <i class="icon-arrow-right" ng-click="setRangeDiff(1)"></i>
-                </span>
-            </label>
-            <div class="col-lg-3" ng-repeat="range in ranges track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" style="width: 100%;" ng-class="{ 'btn-primary': range.is(filters) }"
-                    ng-click="range.set(filters, source)" ng-bind="range.getName()"></button></div>
-        </div>
-        <div class="row">
-            <label class="col-lg-3 col-form-label">Date</label>
-            <div class="col-lg-3">
-                <div class="form-control" ng-click="flags.dateFrom = true" is-open="flags.dateFrom" ng-model="filters.dateFrom" ng-change="setDateFrom(filters.dateFrom)"
-                    uib-datepicker-popup datepicker-template-url="uib/template/datepicker/datepicker.html" show-button-bar="false"
-                    current-text="Oggi" clear-text="Rimuovi" close-text="Chiudi">
-                    <span ng-bind="filters.dateFrom || 'seleziona' | date : 'dd-MM-yyyy'"></span> <i class="icon-remove"
-                        ng-if="filters.dateFrom" ng-click="stop($event) && (filters.dateFrom = null)"></i> <i class="icon-calendar"></i>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <div class="form-control" ng-click="flags.dateTo = true" is-open="flags.dateTo" ng-model="filters.dateTo" ng-change="setDateTo(filters.dateTo)"
-                    uib-datepicker-popup datepicker-template-url="uib/template/datepicker/datepicker.html" show-button-bar="false"
-                    current-text="Oggi" clear-text="Rimuovi" close-text="Chiudi">
-                    <span ng-bind="filters.dateTo || 'seleziona' | date : 'dd-MM-yyyy'"></span> <i class="icon-remove" ng-if="filters.dateTo"
-                        ng-click="stop($event) && (filters.dateTo = null)"></i> <i class="icon-calendar"></i>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.cols.showComparison }"
-                    style="width: 100%;" ng-click="table.cols.setMode('showComparison') && update()">Confronto anno precedente</button>
-            </div>
-        </div>
-    </section>
 </script>
 
 <script type="text/ng-template" id="partials/report/filters/columns">
@@ -271,27 +229,31 @@
         <h6 class="headline foreground light-60"><span>Opzioni</span></h6>
         <div class="row margin-bottom-xs-10" ng-if="table.excludes.length">
             <label class="col-lg-3 col-form-label">Escludi</label>
-            <div class="col-lg-3" ng-repeat="item in table.excludes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;"
-                    ng-click="table.exclude(item)" ng-bind="item.name"></button></div>
+            <div class="col-lg-3" ng-repeat="item in table.excludes track by $index">
+                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;"
+                    ng-click="table.exclude(item)" ng-bind="item.name"></button>
+            </div>
         </div>
         <div class="row margin-bottom-xs-10" ng-if="table.includes.length">
             <label class="col-lg-3 col-form-label">Visualizza</label>
-            <div class="col-lg-3" ng-repeat="item in table.includes track by $index"><button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;"
-                    ng-click="table.include(item)" ng-bind="item.name"></button></div>
+            <div class="col-lg-3" ng-repeat="item in table.includes track by $index">
+                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : item.active }" style="width: 100%;"
+                    ng-click="table.include(item)" ng-bind="item.name"></button>
+            </div>
         </div>
         <div class="row">
             <label class="col-lg-3 col-form-label">&nbsp;</label>
             <div class="col-lg-3">
-                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.cols.showDynamics }" style="width: 100%;"
-                    ng-click="table.cols.setMode('showDynamics')">Percentuale di incidenza</button>
+                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('dynamic') }" style="width: 100%;"
+                    ng-click="table.toggle('dynamic')">Percentuale di incidenza</button>
             </div>
             <div class="col-lg-3">
-                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.cols.showChart }" style="width: 100%;"
-                    ng-click="table.cols.setMode('showChart') && groupChart()">Mostra grafico</button>
+                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('chart') }" style="width: 100%;"
+                    ng-click="table.toggle('chart') && chart.group(table.rows)">Mostra grafico</button>
             </div>
             <div class="col-lg-3">
-                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.cols.showReport }" style="width: 100%;"
-                    ng-click="table.cols.setMode('showReport')">Mostra report</button>
+                <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('table') }" style="width: 100%;"
+                    ng-click="table.toggle('table')">Mostra report</button>
             </div>
         </div>
     </section>
@@ -340,12 +302,18 @@
                         <tr ng-repeat="row in rows track by $index">
                             <td><label>Attività</label><span title="{{row.activity.name}}" ng-bind="row.activity.name"></span></td>
                             <td><label>Fornitore</label><span title="{{row.area.name}}" ng-bind="row.area.name"></span></td>
-                            <td class="aggregate"><label>Ore Budget Iniziale</label><span class="text-xs-right" title="{{row.budgetInitial | customNumber : 0 : ' H'}}"
-                                    ng-bind="row.budget | customNumber : 0 : ' H'"></span></td>
-                            <td class="aggregate"><label>Ore Budget</label><span class="text-xs-right" title="{{row.budget | customNumber : 0 : ' H'}}"
-                                    ng-bind="row.budget | customNumber : 0 : ' H'"></span></td>
-                            <td class="aggregate"><label>Ore Fatte</label><span class="text-xs-right" title="{{row.hoursDone | customNumber : 0 : ' H'}}"
-                                    ng-bind="row.hoursDone | customNumber : 0 : ' H'"></span></td>
+                            <td class="aggregate"><label>Ore Budget Iniziale</label>
+                                <span class="text-xs-right" title="{{row.budgetInitial | customNumber : 0 : ' H'}}"
+                                    ng-bind="row.budget | customNumber : 0 : ' H'"></span>
+                            </td>
+                            <td class="aggregate"><label>Ore Budget</label>
+                                <span class="text-xs-right" title="{{row.budget | customNumber : 0 : ' H'}}"
+                                    ng-bind="row.budget | customNumber : 0 : ' H'"></span>
+                            </td>
+                            <td class="aggregate"><label>Ore Fatte</label>
+                                <span class="text-xs-right" title="{{row.hoursDone | customNumber : 0 : ' H'}}"
+                                    ng-bind="row.hoursDone | customNumber : 0 : ' H'"></span>
+                            </td>
                         </tr>
                     </tbody>
                     <tbody ng-if="!state.isBusy && !rows.length">

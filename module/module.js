@@ -1,3 +1,3 @@
 ﻿/* global angular */
 
-var module = angular.module('reports', ['ng', 'ngSanitize', 'ngMessages']);
+var module = angular.module('repotable', ['ng', 'ngSanitize', 'ngMessages']);
