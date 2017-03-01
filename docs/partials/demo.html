@@ -129,7 +129,7 @@
                                 <span>filtra</span>
                             </button>
                             <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.id">
-                                <li class="nav-item" ng-repeat="item in col.values" ng-click="stop($event) && col.searchToggle(item)">
+                                <li class="nav-item" ng-repeat="item in col.values" ng-click="stop($event) && col.filter(item)">
                                     <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="item.active" /> <span class="label" ng-bind="item.name">-</span></label>
                                 </li>
                             </ul>
