@@ -13,6 +13,7 @@
     "tests"
   ],
   "dependencies": {
-    "js-xlsx": "^0.8.5"
+    "js-xlsx": "^0.8.5",
+    "bootstrap": "v4.0.0-alpha.6"
   }
 }

@@ -1,25 +1,19 @@
 ﻿
-@import "../bower_components/bootstrap/scss/mixins";
-@import "../bower_components/bootstrap/scss/variables";
 @import "mixins";
 
 [draggable-item] {
     position: relative;
-
     &:not([disabled]) {
         cursor: move;
-
-        input, select {
+        input,
+        select {
             cursor: pointer;
         }
     }
-
-    @include user-select();
-
+    @include unselectable();
     &.dragging {
         z-index: 10000;
-
-        > * {
+        >* {
             pointer-events: none;
         }
     }
@@ -32,55 +26,39 @@
     padding: 4px;
     display: inline-block;
     line-height: 0;
-
     @include transition();
-
-
     &:not([disabled]) {
         &.over {
             border-color: #ccc;
         }
-
         &.dropping {
             border-color: #f2838a;
         }
     }
 }
 
+
+/*
 [droppable-item] + [droppable-item] {
-    // border-left: none;
-    // margin-left: -2px;
+    border-left: none;
+    margin-left: -2px;
 }
+*/
 
-th {
-    &[draggable-item] {
-        height: 44px;
-
-        &:not([disabled]) {
-            &:hover {
-                background-color: #f0f0f0;
-            }
-
-            &.dragging {
-                background-color: #fff;
-            }
+[draggable-item] {
+    &:not([disabled]) {
+        &:hover {
+            background-color: #f0f0f0;
         }
-    }
-
-    &[droppable-item] {
-
-        &:not([disabled]) {
-            &.dropping {
-                background-color: #f8f8f8;
-            }
+        &.dragging {
+            background-color: #fff;
         }
     }
 }
-
-.atable-dynamic {
-    th[draggable-item] {
-        &:not([disabled]) {
-            @include transition();
+[droppable-item] {
+    &:not([disabled]) {
+        &.dropping {
+            background-color: #f8f8f8;
         }
     }
 }
