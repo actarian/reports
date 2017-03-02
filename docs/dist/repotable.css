@@ -121,13 +121,17 @@
   border-collapse: collapse;
   display: table;
   table-layout: fixed; }
-  .atable td, .atable th {
+  .atable td,
+  .atable th {
     vertical-align: middle; }
     .atable td > span,
-    .atable td > label, .atable th > span,
+    .atable td > label,
+    .atable th > span,
     .atable th > label {
       vertical-align: middle; }
-  .atable thead, .atable tbody, .atable tfoot {
+  .atable thead,
+  .atable tbody,
+  .atable tfoot {
     display: table-header-group; }
   .atable tbody {
     display: table-row-group; }
@@ -135,7 +139,8 @@
     display: table-footer-group; }
   .atable tr {
     display: table-row; }
-  .atable td, .atable th {
+  .atable td,
+  .atable th {
     display: table-cell;
     padding: 8px;
     margin: 0;
@@ -150,15 +155,9 @@
 
 .atable-default {
   margin-bottom: 15px;
-  background-color: white;
-  /*
-    tr:last-child {
-        td {
-            border-bottom: none;
-        }
-    }
-*/ }
-  .atable-default th, .atable-default label {
+  background-color: white; }
+  .atable-default th,
+  .atable-default label {
     font-size: 10px;
     font-weight: 900;
     padding: 2px 0;
@@ -168,18 +167,25 @@
   .atable-default td > span {
     display: inline-block;
     color: #111; }
-  .atable-default [class^="status-"] th, .atable-default [class^="status-"] label, .atable-default [class^="status-"] span {
+  .atable-default [class^="status-"] th,
+  .atable-default [class^="status-"] label,
+  .atable-default [class^="status-"] span {
     color: inherit; }
-  .atable-default [scope="row"], .atable-default .scope-row {
+  .atable-default [scope="row"],
+  .atable-default .scope-row {
     text-align: left; }
   .atable-default .compact {
     padding-top: 0;
     padding-bottom: 0; }
-  .atable-default [ng-click] tr:first-child td, .atable-default tr[ng-click]:first-child td,
-  .atable-default [link-to] tr:first-child td, .atable-default tr[link-to]:first-child td {
+  .atable-default [ng-click] tr:first-child td,
+  .atable-default tr[ng-click]:first-child td,
+  .atable-default [link-to] tr:first-child td,
+  .atable-default tr[link-to]:first-child td {
     position: relative; }
-    .atable-default [ng-click] tr:first-child td:after, .atable-default tr[ng-click]:first-child td:after,
-    .atable-default [link-to] tr:first-child td:after, .atable-default tr[link-to]:first-child td:after {
+    .atable-default [ng-click] tr:first-child td:after,
+    .atable-default tr[ng-click]:first-child td:after,
+    .atable-default [link-to] tr:first-child td:after,
+    .atable-default tr[link-to]:first-child td:after {
       content: '';
       display: block;
       position: absolute;
@@ -211,8 +217,10 @@
       -webkit-transform-style: preserve-3d;
       /* Chrome, Safari, Opera */
       transform-style: preserve-3d; }
-  .atable-default [ng-click] tr:first-child:hover td:after, .atable-default tr[ng-click]:first-child:hover td:after,
-  .atable-default [link-to] tr:first-child:hover td:after, .atable-default tr[link-to]:first-child:hover td:after {
+  .atable-default [ng-click] tr:first-child:hover td:after,
+  .atable-default tr[ng-click]:first-child:hover td:after,
+  .atable-default [link-to] tr:first-child:hover td:after,
+  .atable-default tr[link-to]:first-child:hover td:after {
     display: block;
     visibility: visible;
     opacity: 1; }
@@ -265,7 +273,9 @@
     width: 80px; }
   .atable-default .th-family {
     width: 190px; }
-  .atable-default .th-number, .atable-default .th-hours, .atable-default .th-costs {
+  .atable-default .th-number,
+  .atable-default .th-hours,
+  .atable-default .th-costs {
     width: 120px; }
   .atable-default .th-icon {
     width: 40px; }
@@ -281,7 +291,8 @@
       line-height: 16px;
       vertical-align: middle;
       padding: 0 4px; }
-  .atable-default td, .atable-default th {
+  .atable-default td,
+  .atable-default th {
     padding: 10px 8px;
     margin: 0;
     border: 0;
@@ -317,24 +328,8 @@
       font-size: 15px;
       font-weight: 600; }
   .atable-default td {
-    border-bottom: 1px solid #ccc;
-    /*
-        > span {
-            font-size: 12px;
-        }
-
-        &:not(.xl) > span {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            max-width: 120px;
-        }
-        */ }
+    border-bottom: 1px solid #ccc; }
     .atable-default td > span {
-      /*         
-            display: inline-block;
-            max-width: 100%;
-            */
       display: block;
       font-size: 12px;
       white-space: nowrap;
@@ -351,7 +346,9 @@
     border-top: 1px solid #888; }
   .atable-default .sub {
     background: #888; }
-    .atable-default .sub th, .atable-default .sub label, .atable-default .sub span {
+    .atable-default .sub th,
+    .atable-default .sub label,
+    .atable-default .sub span {
       color: white; }
     .atable-default .sub tbody + tbody {
       border-top: 2px solid white; }
@@ -364,17 +361,21 @@
   width: 100%;
   max-width: 100%;
   border-collapse: collapse; }
-  .atable-responsive td, .atable-responsive th {
+  .atable-responsive td,
+  .atable-responsive th {
     vertical-align: middle; }
     .atable-responsive td > span,
-    .atable-responsive td > label, .atable-responsive th > span,
+    .atable-responsive td > label,
+    .atable-responsive th > span,
     .atable-responsive th > label {
       vertical-align: middle; }
   @media (min-width: 992px) {
     .atable-responsive {
       display: table;
       table-layout: fixed; }
-      .atable-responsive thead, .atable-responsive tbody, .atable-responsive tfoot {
+      .atable-responsive thead,
+      .atable-responsive tbody,
+      .atable-responsive tfoot {
         display: table-header-group; }
       .atable-responsive tbody {
         display: table-row-group; }
@@ -382,7 +383,8 @@
         display: table-footer-group; }
       .atable-responsive tr {
         display: table-row; }
-      .atable-responsive td, .atable-responsive th {
+      .atable-responsive td,
+      .atable-responsive th {
         display: table-cell;
         padding: 8px;
         margin: 0;
@@ -399,7 +401,8 @@
       display: block; }
       .atable-responsive thead {
         display: none; }
-      .atable-responsive tbody, .atable-responsive tfoot {
+      .atable-responsive tbody,
+      .atable-responsive tfoot {
         display: block; }
       .atable-responsive tr {
         display: flex;
@@ -413,7 +416,9 @@
       .atable-responsive td > label {
         display: block; } }
   @media (max-width: 767px) {
-    .atable-responsive tr, .atable-responsive td, .atable-responsive th {
+    .atable-responsive tr,
+    .atable-responsive td,
+    .atable-responsive th {
       display: block; }
     .atable-responsive tr > td {
       width: 100%; }
@@ -425,7 +430,8 @@
         width: calc(100% - 115px);
         display: inline-block; } }
 
-.atable-responsive-default th, .atable-responsive-default label {
+.atable-responsive-default th,
+.atable-responsive-default label {
   font-size: 10px;
   font-weight: 900;
   padding: 2px 0;
@@ -437,21 +443,28 @@
   display: inline-block;
   color: #111; }
 
-.atable-responsive-default [class^="status-"] th, .atable-responsive-default [class^="status-"] label, .atable-responsive-default [class^="status-"] span {
+.atable-responsive-default [class^="status-"] th,
+.atable-responsive-default [class^="status-"] label,
+.atable-responsive-default [class^="status-"] span {
   color: inherit; }
 
-.atable-responsive-default [scope="row"], .atable-responsive-default .scope-row {
+.atable-responsive-default [scope="row"],
+.atable-responsive-default .scope-row {
   text-align: left; }
 
 .atable-responsive-default .compact {
   padding-top: 0;
   padding-bottom: 0; }
 
-.atable-responsive-default [ng-click] tr:first-child td, .atable-responsive-default tr[ng-click]:first-child td,
-.atable-responsive-default [link-to] tr:first-child td, .atable-responsive-default tr[link-to]:first-child td {
+.atable-responsive-default [ng-click] tr:first-child td,
+.atable-responsive-default tr[ng-click]:first-child td,
+.atable-responsive-default [link-to] tr:first-child td,
+.atable-responsive-default tr[link-to]:first-child td {
   position: relative; }
-  .atable-responsive-default [ng-click] tr:first-child td:after, .atable-responsive-default tr[ng-click]:first-child td:after,
-  .atable-responsive-default [link-to] tr:first-child td:after, .atable-responsive-default tr[link-to]:first-child td:after {
+  .atable-responsive-default [ng-click] tr:first-child td:after,
+  .atable-responsive-default tr[ng-click]:first-child td:after,
+  .atable-responsive-default [link-to] tr:first-child td:after,
+  .atable-responsive-default tr[link-to]:first-child td:after {
     content: '';
     display: block;
     position: absolute;
@@ -484,8 +497,10 @@
     /* Chrome, Safari, Opera */
     transform-style: preserve-3d; }
 
-.atable-responsive-default [ng-click] tr:first-child:hover td:after, .atable-responsive-default tr[ng-click]:first-child:hover td:after,
-.atable-responsive-default [link-to] tr:first-child:hover td:after, .atable-responsive-default tr[link-to]:first-child:hover td:after {
+.atable-responsive-default [ng-click] tr:first-child:hover td:after,
+.atable-responsive-default tr[ng-click]:first-child:hover td:after,
+.atable-responsive-default [link-to] tr:first-child:hover td:after,
+.atable-responsive-default tr[link-to]:first-child:hover td:after {
   display: block;
   visibility: visible;
   opacity: 1; }
@@ -515,14 +530,7 @@
 @media (min-width: 992px) {
   .atable-responsive-default {
     margin-bottom: 15px;
-    background-color: white;
-    /*
-    tr:last-child {
-        td {
-            border-bottom: none;
-        }
-    }
-*/ }
+    background-color: white; }
     .atable-responsive-default .th-id {
       width: 55px;
       font-weight: 600;
@@ -551,7 +559,9 @@
       width: 80px; }
     .atable-responsive-default .th-family {
       width: 190px; }
-    .atable-responsive-default .th-number, .atable-responsive-default .th-hours, .atable-responsive-default .th-costs {
+    .atable-responsive-default .th-number,
+    .atable-responsive-default .th-hours,
+    .atable-responsive-default .th-costs {
       width: 120px; }
     .atable-responsive-default .th-icon {
       width: 40px; }
@@ -567,7 +577,8 @@
         line-height: 16px;
         vertical-align: middle;
         padding: 0 4px; }
-    .atable-responsive-default td, .atable-responsive-default th {
+    .atable-responsive-default td,
+    .atable-responsive-default th {
       padding: 10px 8px;
       margin: 0;
       border: 0;
@@ -603,24 +614,8 @@
         font-size: 15px;
         font-weight: 600; }
     .atable-responsive-default td {
-      border-bottom: 1px solid #ccc;
-      /*
-        > span {
-            font-size: 12px;
-        }
-
-        &:not(.xl) > span {
-            white-space: nowrap;
-            text-overflow: ellipsis;
-            overflow: hidden;
-            max-width: 120px;
-        }
-        */ }
+      border-bottom: 1px solid #ccc; }
       .atable-responsive-default td > span {
-        /*         
-            display: inline-block;
-            max-width: 100%;
-            */
         display: block;
         font-size: 12px;
         white-space: nowrap;
@@ -637,7 +632,9 @@
       border-top: 1px solid #888; }
     .atable-responsive-default .sub {
       background: #888; }
-      .atable-responsive-default .sub th, .atable-responsive-default .sub label, .atable-responsive-default .sub span {
+      .atable-responsive-default .sub th,
+      .atable-responsive-default .sub label,
+      .atable-responsive-default .sub span {
         color: white; }
       .atable-responsive-default .sub tbody + tbody {
         border-top: 2px solid white; }
@@ -649,7 +646,8 @@
 @media (max-width: 991px) {
   .atable-responsive-default tr + tr {
     border-top: 1px solid #ccc; }
-  .atable-responsive-default td, .atable-responsive-default th {
+  .atable-responsive-default td,
+  .atable-responsive-default th {
     padding: 10px 8px;
     border-bottom: 0; }
   .atable-responsive-default td > span {
@@ -678,7 +676,8 @@
     .atable-responsive-default .sub tr {
       border: 0;
       background: #888; }
-    .atable-responsive-default .sub label, .atable-responsive-default .sub span {
+    .atable-responsive-default .sub label,
+    .atable-responsive-default .sub span {
       color: white; }
     .atable-responsive-default .sub tbody + tbody {
       border-top: 2px solid white; }
@@ -697,7 +696,8 @@
   .atable-responsive-default tr + tr {
     margin-top: 0;
     border-top: 0; }
-  .atable-responsive-default td, .atable-responsive-default th {
+  .atable-responsive-default td,
+  .atable-responsive-default th {
     padding: 10px;
     border-bottom: 0; }
   .atable-responsive-default tbody > tr {
@@ -727,7 +727,8 @@
       background: #888; }
     .atable-responsive-default .sub td + td {
       border-top: 1px solid #f0f0f0; }
-    .atable-responsive-default .sub label, .atable-responsive-default .sub span {
+    .atable-responsive-default .sub label,
+    .atable-responsive-default .sub span {
       color: white; } }
 
 td.toggle .loading {
@@ -868,7 +869,8 @@ td.toggle .loading {
 .atable-dynamic td {
   z-index: 0; }
 
-.atable-dynamic td, .atable-dynamic th {
+.atable-dynamic td,
+.atable-dynamic th {
   vertical-align: top;
   position: relative;
   -moz-transition-property: none;
@@ -902,7 +904,8 @@ td.toggle .loading {
             }
         }
         */ }
-  .atable-dynamic td > span, .atable-dynamic th > span {
+  .atable-dynamic td > span,
+  .atable-dynamic th > span {
     vertical-align: top;
     -moz-transition-property: none;
     -o-transition-property: none;
@@ -923,10 +926,12 @@ td.toggle .loading {
     -webkit-transform-style: preserve-3d;
     /* Chrome, Safari, Opera */
     transform-style: preserve-3d; }
-  .atable-dynamic td > .col-text, .atable-dynamic th > .col-text {
+  .atable-dynamic td > .col-text,
+  .atable-dynamic th > .col-text {
     text-transform: uppercase; }
 
-td.dynamic, th.dynamic {
+td.dynamic,
+th.dynamic {
   background: rgba(17, 17, 17, 0.05); }
 
 .aggregate + .aggregate {
