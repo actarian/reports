@@ -1,6 +1,4 @@
-﻿
-@import "mixins";
-
+﻿@import "mixins";
 [draggable-item] {
     position: relative;
     &:not([disabled]) {
@@ -55,6 +53,7 @@
         }
     }
 }
+
 [droppable-item] {
     &:not([disabled]) {
         &.dropping {
