@@ -1,14 +1,121 @@
 ﻿/* global angular, module */
 
-module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($parse, $filter, Utils, colTypes) {
+module.factory('Filters', [function() {
+    function Filters() {
+        this.keys = {};
+        this.flags = {};
+        this.values = [];
+        this.search = [];
+    }
+    Filters.prototype = {
+        has: function(id) {
+            return (id && this.keys[id] === true) || false;
+        },
+        active: function(id) {
+            return (this.has(id) && this.flags[id] === true) || false;
+        },
+        removeAll: function() {
+            this.keys = {};
+            this.values.length = 0;
+        },
+        reset: function() {
+            this.removeAll();
+            this.flags = {};
+            this.search = [];
+        },
+        toggle: function(item) {
+            if (this.active(item.id)) {
+                item.active = this.flags[item.id] = false;
+                var index = this.search.indexOf(item.id);
+                this.search.splice(index, 1);
+            } else {
+                item.active = this.flags[item.id] = true;
+                this.search.push(item.id);
+            }
+        },
+        add: function(item) {
+            if (item.id && !this.has(item.id)) {
+                this.keys[item.id] = true;
+                this.values.push(item);
+            }
+        },
+        remove: function(item) {
+            if (this.has(item.id)) {
+                var index;
+                if (this.flags[item.id] === true) {
+                    item.active = this.flags[item.id] = false;
+                    index = this.search.indexOf(item.id);
+                    this.search.splice(index, 1);
+                }
+                index = this.values.indexOf(item);
+                this.values.splice(index, 1);
+                this.keys[item.id] = false;
+            }
+        },
+        sort: function() {
+            this.values.sort(function(va, vb) {
+                var a, b;
+                a = va.name ? String(va.name).toLowerCase() : ''; // ignore upper and lowercase
+                b = vb.name ? String(vb.name).toLowerCase() : ''; // ignore upper and lowercase
+                if (a < b) {
+                    return -1;
+                }
+                if (a > b) {
+                    return 1;
+                }
+                return 0;
+            });
+        },
+    };
+    return Filters;
+}]);
+
+module.factory('Order', [function() {
+    function Order() {
+        this.set(0);
+    }
+    Order.prototype = {
+        set: function(sort) {
+            switch (sort) {
+                case 1:
+                    this.name = 'Asc';
+                    this.sort = 1;
+                    this.asc = true;
+                    this.desc = false;
+                    break;
+                case -1:
+                    this.name = 'Desc';
+                    this.sort = -1;
+                    this.asc = false;
+                    this.desc = true;
+                    break;
+                default:
+                    this.name = 'Ordina';
+                    this.sort = 0;
+                    this.asc = false;
+                    this.desc = false;
+            }
+        },
+        toggle: function() {
+            var sort = this.sort + 1;
+            sort === 2 ? sort = -1 : null;
+            this.set(sort);
+        },
+    };
+    return Order;
+}]);
+
+module.factory('Column', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'colTypes', function($parse, $filter, Utils, Filters, Order, colTypes) {
     var totalTypes = {
         SUM: 1,
         MIN: 2,
         MAX: 3,
         AVG: 4,
     }
+
     function Column(data) {
-        this.filters = [];
+        this.filters = new Filters();
+        this.order = new Order();
         this.typeTotal = this.typeTotal || totalTypes.SUM;
         data ? angular.extend(this, data) : null;
         // PREPARE GETTER SETTERS
@@ -21,42 +128,61 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
         this.source = this.source || this.value;
         this.getters = {};
         var fields = ['key', 'value', 'raw', 'source', 'post'];
-        angular.forEach(fields, function (field) {
+        angular.forEach(fields, function(field) {
             if (this[field]) {
                 this.getters[field] = angular.isFunction(this[field]) ? this[field] : $parse(this[field]);
             }
         }, this);
         this.setters = {};
-        angular.forEach(this.getters, function (getter, key) {
+        angular.forEach(this.getters, function(getter, key) {
             if (!angular.isFunction(this[key])) {
                 this.setters[key] = getter.assign;
             }
         }, this);
         // PREPARE GETTER SETTERS
-        this.reset();
+        this.keys = {};
+        this.total = 0;
     }
     Column.prototype = {
-        getKey: function (item) {
-            return this.getters.key(item);
-        },
-        getValue: function (item) {
-            return this.getters.value(item);
-        },
-        getRaw: function (item) {
-            return this.getters.raw(item);
-        },
-        getSource: function (item) {
-            return this.getters.source(item);
-        },
-        reset: function () {
-            this.values = [];
+        reset: function() {
             this.keys = {};
             this.total = 0;
-            if (this.filters.length && !this.isActive()) {
-                this.filters = [];
+            if (!this.isActive()) {
+                this.filters.reset();
             }
         },
-        hasKey: function (item) {
+        addValue: function(item) {
+            var key = this.getKey(item);
+            if (!this.filters.has(key)) {
+                var value = this.getRaw(item);
+                var active = this.filters.flags[key];
+                this.filters.add({
+                    id: key,
+                    name: value || '-',
+                    active: active,
+                });
+            }
+        },
+        filter: function(item) {
+            if (this.isActive() && this.filters.search.length) {
+                return (this.filters.search.indexOf(item.static[this.id].key) !== -1);
+            } else {
+                return true;
+            }
+        },
+        getKey: function(item) {
+            return this.getters.key(item);
+        },
+        getValue: function(item) {
+            return this.getters.value(item);
+        },
+        getRaw: function(item) {
+            return this.getters.raw(item);
+        },
+        getSource: function(item) {
+            return this.getters.source(item);
+        },
+        hasKey: function(item) {
             var has = true;
             var key = this.getKey(item);
             if (key && this.keys[key] != true) {
@@ -65,11 +191,11 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return has;
         },
-        initValue: function (item) {
+        initValue: function(item) {
             this.setters.raw(item, (this.getters.value(item) || 0));
             return this;
         },
-        addTotal: function (item, row) {
+        addTotal: function(item, row) {
             var a = (this.getters.raw(item) || 0);
             var b = (this.getters.value(row) || 0);
             switch (this.typeTotal) {
@@ -88,7 +214,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return this;
         },
-        addCount: function (item, row) {
+        addCount: function(item, row) {
             if (!this.hasKey(row) && this.setters.raw) {
                 var v = null;
                 if (item != row) {
@@ -100,31 +226,12 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return this;
         },
-        addValue: function (item) {
-            this.values = this.values || [];
-            var key = this.getKey(item);
-            var has = false;
-            angular.forEach(this.values, function (v) {
-                if (v.id == key) {
-                    has = true;
-                }
-            })
-            if (!has) {
-                var value = this.getRaw(item);
-                var active = (this.filters.indexOf(key) !== -1);
-                this.values.push({
-                    id: key,
-                    name: value || '-',
-                    active: active,
-                });
-            }
-        },
-        getValueTotal: function (filtered) {
+        getValueTotal: function(filtered) {
             var value = 0;
             if (this.compare && this.type === colTypes.INCREMENT) {
                 var current = 0; // (col.getters.raw(item) || 0);
                 var previous = 0; // (this.getters.raw(item) || 0);                
-                angular.forEach(filtered, function (item) {
+                angular.forEach(filtered, function(item) {
                     current += (this.col.getters.raw(item) || 0);
                     previous += (this.getters.raw(item) || 0);
                 }.bind(this));
@@ -145,7 +252,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                     case totalTypes.AVG:
                         break;
                 }
-                angular.forEach(filtered, function (item, i) {
+                angular.forEach(filtered, function(item, i) {
                     var a = value;
                     var b = (this.getRaw(item) || 0);
                     switch (this.typeTotal) {
@@ -163,12 +270,12 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                             break;
                     }
                 }.bind(this));
-                (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) ? value = 0 : null;
+                (value === Number.POSITIVE_INFINITY || value === Number.NEGATIVE_INFINITY) ? value = 0: null;
             }
             this.total = value;
             return value;
         },
-        getValueFormatted: function (item) {
+        getValueFormatted: function(item) {
             var value = this.getRaw(item);
             switch (this.type) {
                 case colTypes.RESOURCE:
@@ -203,14 +310,14 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return value;
         },
-        getFormatted: function (item) {
+        getFormatted: function(item) {
             if (this.dynamic) {
                 return this.getValueFormatted(item);
             } else {
                 return item.static[this.id].value;
             }
         },
-        getTotal: function (filtered) {
+        getTotal: function(filtered) {
             var value = this.getValueTotal(filtered);
             switch (this.type) {
                 case colTypes.NUMBER:
@@ -240,7 +347,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return value;
         },
-        getFormat: function () {
+        getFormat: function() {
             var format = '';
             switch (this.type) {
                 case colTypes.ID:
@@ -271,12 +378,12 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return format;
         },
-        getLink: function (item) {
+        getLink: function(item) {
             return angular.isFunction(this.link) ? this.link(item) : null;
         },
-        getHeaderClass: function () {
+        getHeaderClass: function() {
             var cc = [];
-            angular.forEach(this, function (value, key) {
+            angular.forEach(this, function(value, key) {
                 if (value === true) {
                     cc.push(key);
                 }
@@ -292,15 +399,17 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
                     cc.push('text-xs-right');
                     break;
             }
+            /*
             var columnClass = this.getColumnClass();
             if (columnClass != '') {
                 cc.push(columnClass);
             }
+            */
             return cc.join(' ');
         },
-        getCellClass: function (item) {
+        getCellClass: function(item) {
             var cc = [];
-            angular.forEach(this, function (value, key) {
+            angular.forEach(this, function(value, key) {
                 if (value === true) {
                     cc.push(key);
                 }
@@ -325,10 +434,10 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return cc.join(' ');
         },
-        getColumnClass: function () {
+        getColumnClass: function() {
             return this.color ? 'shade-light-blue-' + this.color : '';
         },
-        getItemClass: function (item) {
+        getItemClass: function(item) {
             var cc = [];
             cc.push(item.static[this.id].baseClass);
             var columnClass = this.getColumnClass();
@@ -337,7 +446,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return cc.join(' ');
         },
-        getTextClass: function (item) {
+        getTextClass: function(item) {
             var cc = [];
             switch (this.type) {
                 case colTypes.INCREMENT:
@@ -351,7 +460,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return cc.join(' ');
         },
-        getTotalClass: function (filtered) {
+        getTotalClass: function(filtered) {
             var cc = [];
             switch (this.type) {
                 case colTypes.NUMBER:
@@ -366,56 +475,47 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'colTypes', function ($p
             }
             return cc.join(' ');
         },
-        isActive: function () {
+        isActive: function() {
             if (angular.isFunction(this.active) && this.active) {
                 return this.active();
             } else {
                 return this.active;
             }
         },
-        toggle: function () {
+        toggle: function() {
             angular.isFunction(this.active) ? null : this.active = !this.active;
         },
-        activate: function () {
+        activate: function() {
             angular.isFunction(this.active) ? null : this.active = true;
         },
-        deactivate: function () {
+        deactivate: function() {
             angular.isFunction(this.active) ? null : this.active = false;
         },
-        filter: function (item) { // value of col collections
-            var index = this.filters.indexOf(item.id);
-            if (index === -1) {
-                item.active = true;
-                this.filters.push(item.id);
-            } else {
-                item.active = false;
-                this.filters.splice(index, 1);
-            }
-            console.log('Column.filter', item.id, item.name, this.filters);
-        },
-        makeStatic: function (item) {
+        toStatic: function(item) {
             if (this.post) {
                 this.setters.raw(item, (this.getters.post(item) || 0));
             }
             var col = this;
-            item.static[col.id] = {
+            var item = item.static[col.id] = {
                 baseClass: col.getCellClass(item),
                 textClass: col.getTextClass(item),
+                key: col.getKey(item),
                 value: col.getValueFormatted(item),
                 link: col.link ? col.link(item) : null,
                 pop: col.pop ? col.pop(item) : null,
             };
+            return item;
         },
     };
     Column.types = colTypes;
     return Column;
 }]);
 
-module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($parse, Utils, Column, colTypes) {
+module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function($parse, Utils, Column, colTypes) {
     function Columns(columns) {
         var list = [];
         if (columns) {
-            angular.forEach(columns, function (col, index) {
+            angular.forEach(columns, function(col, index) {
                 col.id = index + 1;
                 list.push(new Column(col));
             });
@@ -427,25 +527,25 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
         show: {
             table: true, // defaults
         },
-        getCount: function () {
+        getCount: function() {
             var i = 0;
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 i += col.isActive() ? 1 : 0;
             }.bind(this));
             return i;
         },
-        getFirstCol: function () {
+        getFirstCol: function() {
             var first = null;
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (first === null && col.isActive() && col.groupBy && col.value !== 'month' && col.value !== 'monthShort') {
                     first = col;
                 }
             });
             return first;
         },
-        getChartKey: function (item, time) {
+        getChartKey: function(item, time) {
             var keys = [];
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (col.isActive() && col.groupBy && col.value !== 'month' && col.value !== 'monthShort' && keys.length === 0) {
                     keys.push(col.getKey(item));
                 }
@@ -453,34 +553,35 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             keys.push(time);
             return keys.join('-');
         },
-        getGroupKey: function (item) {
+        getGroupKey: function(item) {
             var keys = [];
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (col.isActive() && col.groupBy) {
                     keys.push(col.getKey(item));
                 }
             });
             return keys.join('-');
         },
-        getSortKey: function (item) {
+        getSortKey: function(item) {
             var values = [];
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (col.isActive() && col.groupBy) {
                     values.push(col.sort ? $parse(col.sort)(item) : col.getValueFormatted(item));
                 }
             });
             return values.join('');
         },
-        expand: function (data) {
+        expand: function(data) {
             var options = {
                 dynamic: true,
                 compare: false,
             }
             data ? angular.extend(options, data) : null;
             // add percentuals and compares
-            var array = [], cols = this;
+            var array = [],
+                cols = this;
             array.radios = {};
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 col.id = array.length + 1;
                 array.push(col);
                 if (col.aggregate && col.value === col.raw) {
@@ -488,13 +589,13 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                         array.push(new Column({
                             id: array.length + 1,
                             name: '%',
-                            value: function (item) {
+                            value: function(item) {
                                 return col.getters.raw(item) / col.total * 100;
                             },
                             key: col.key,
                             type: colTypes.PERCENT,
                             dynamic: true,
-                            active: function () {
+                            active: function() {
                                 return array.show.dynamic && col.active;
                             },
                             col: col,
@@ -504,7 +605,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                         array.push(new Column({
                             id: array.length + 1,
                             name: 'anno precedente',
-                            value: function (item) {
+                            value: function(item) {
                                 return this.getters.raw(item);
                             },
                             raw: col.value + 'Last',
@@ -514,7 +615,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                             count: col.count,
                             compare: true,
                             dynamic: true,
-                            active: function () {
+                            active: function() {
                                 return array.show.compare && col.active;
                             },
                             col: col,
@@ -522,7 +623,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                         array.push(new Column({
                             id: array.length + 1,
                             name: '%',
-                            value: function (item) {
+                            value: function(item) {
                                 var current = (col.getters.raw(item) || 0);
                                 var previous = (this.getters.raw(item) || 0);
                                 if (previous) {
@@ -538,7 +639,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                             count: col.count,
                             compare: true,
                             dynamic: true,
-                            active: function () {
+                            active: function() {
                                 return array.show.compare && col.active;
                             },
                             col: col,
@@ -552,9 +653,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getGroups: function () {
+        getGroups: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.groupBy) {
                     array.push(col);
                 }
@@ -562,9 +663,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getAggregates: function () {
+        getAggregates: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.aggregate && !col.count) {
                     array.push(col);
                 }
@@ -572,9 +673,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getPercentages: function () {
+        getPercentages: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.type === colTypes.PERCENT) {
                     array.push(col);
                 }
@@ -582,9 +683,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getDynamics: function () {
+        getDynamics: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.dynamic) {
                     array.push(col);
                 }
@@ -592,9 +693,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getCompares: function () {
+        getCompares: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.compare) {
                     array.push(col);
                 }
@@ -602,9 +703,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        getCounters: function () {
+        getCounters: function() {
             var array = [];
-            angular.forEach(this, function (col, index) {
+            angular.forEach(this, function(col, index) {
                 if (col.count) {
                     array.push(col);
                 }
@@ -612,48 +713,58 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.extend(array, Columns.prototype);
             return array;
         },
-        reset: function () {
+        reset: function() {
             this.groups = {};
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 col.reset();
             });
             return this;
         },
-        makeStatic: function (items) {
-            //console.log('Columns.makeStatic', 'items', items.length);
-            angular.forEach(this, function (col, index) {
-                col.values = [];
+        toStatic: function(items) {
+            var cols = [],
+                rows = [];
+            //console.log('Columns.rows', 'rows', rows.length);
+            angular.forEach(this, function(col) {
+                col.filters.removeAll();
                 col.static = {
                     active: col.isActive(),
                     headerClass: col.getHeaderClass(),
+
+                    columnClass: col.getColumnClass(),
+                    id: col.id,
+                    colName: col.name,
+                    type: col.type,
+                    groupBy: col.groupBy,
+                    aggregate: col.aggregate,
+                    compare: col.compare,
+                    filters: col.filters,
+                    order: col.order,
                 };
+                if (col.static.active) {
+                    col.static.index = cols.length;
+                    cols.push(col.static);
+                }
             });
-            angular.forEach(this, function (col, index) {
+            // serve un secondo ciclo
+            angular.forEach(this, function(col) {
                 if (col.static.active || col.dynamic || col.always) {
-                    angular.forEach(items, function (item) {
-                        col.makeStatic(item);
+                    angular.forEach(items, function(item, i) {
+                        var cell = col.toStatic(item);
                         if (col.hasSearch && col.groupBy) {
                             col.addValue(item);
                         }
+                        var row = rows[i] = (rows[i] || { cols: [] });
+                        row.cols[col.static.index] = angular.extend(angular.copy(cell), col.static);
                     });
                     if (col.hasSearch && col.groupBy) {
-                        col.values = col.values.sort(function (va, vb) {
-                            var a, b;
-                            a = va.name ? String(va.name).toLowerCase() : ''; // ignore upper and lowercase
-                            b = vb.name ? String(vb.name).toLowerCase() : ''; // ignore upper and lowercase
-                            if (a < b) {
-                                return -1;
-                            }
-                            if (a > b) {
-                                return 1;
-                            }
-                            return 0;
-                        });
+                        col.filters.sort();
                     }
                 }
             });
+            console.log(rows);
+            return { cols: cols, rows: rows };
         },
-        activeInRange: function (range) {
+        activeInRange: function(range) {
             var flag = false;
             var i = 0;
             while (!flag && i < this.length) {
@@ -665,7 +776,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             }
             return flag;
         },
-        unique: function (row, items) {
+        unique: function(row, items) {
             var key = this.getGroupKey(row);
             var item = this.groups[key];
             if (!item) {
@@ -675,20 +786,20 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             }
             return item;
         },
-        iterate: function (row, items) {
+        iterate: function(row, items) {
             row = angular.copy(row);
             var item = this.unique(row, items);
             this.addTotals(item, row);
         },
-        compare: function (row, items) {
+        compare: function(row, items) {
             row = angular.copy(row);
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (col.compare) {
                     var value = col.getters.source(row);
                     col.setters.raw(row, value);
                 }
             });
-            angular.forEach(this, function (col) {
+            angular.forEach(this, function(col) {
                 if (col.compare) {
                     col.setters.source(row, 0);
                 }
@@ -696,8 +807,8 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             var item = this.unique(row, items);
             this.addTotals(item, row, true);
         },
-        addTotals: function (item, row, comparing) {
-            angular.forEach(this, function (col) {
+        addTotals: function(item, row, comparing) {
+            angular.forEach(this, function(col) {
                 if ((col.isActive() || col.always) && (comparing ? col.compare : !col.compare)) {
                     if (col.count) {
                         col.addCount(item, row);
@@ -714,9 +825,9 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             });
             return this;
         },
-        toggleColumns: function (c) {
+        toggleColumns: function(c) {
             if (c.radio) {
-                angular.forEach(this, function (col) {
+                angular.forEach(this, function(col) {
                     if (c.radio === col.radio && c !== col) {
                         col.deactivate();
                     }
@@ -727,9 +838,11 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                 c.toggle();
             }
         },
-        isFilterDisabled: function (item, col, filtered) { // check if other values are disabled !! unused
-            var id = item.id, t = this;
-            var has = false, index = 0;
+        isFilterDisabled: function(item, col, filtered) { // check if other values are disabled !! unused
+            var id = item.id,
+                t = this;
+            var has = false,
+                index = 0;
             while (index < filtered.length) {
                 has = has || col.getKey(filtered[index]) === id;
                 if (has) {
@@ -741,20 +854,21 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             return !has;
         },
     };
-    Columns.fromDatas = function (datas) {
+    Columns.fromDatas = function(datas) {
         return Columns.parseCols(datas);
     }
     Columns.parseCols = function getColumns(datas) {
         var cols = null;
         if (datas && datas.length) {
             cols = [];
+
             function parse(item, prop) {
                 if (angular.isArray(item)) {
-                    angular.forEach(item, function (value, key) {
+                    angular.forEach(item, function(value, key) {
                         parse(value, (prop || '') + '[' + key + ']');
                     });
                 } else if (angular.isObject(item)) {
-                    angular.forEach(item, function (value, key) {
+                    angular.forEach(item, function(value, key) {
                         parse(value, (prop ? prop + '.' : '') + key);
                     });
                 } else {
@@ -784,10 +898,10 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
     return Columns;
 }]);
 
-module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Columns, colTypes) {
+module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', function($parse, Columns, colTypes, orderByFilter) {
     function Table(cols, options) {
         this.cols = new Columns(cols).expand(options);
-        this.defaults = cols.map(function (col) {
+        this.defaults = cols.map(function(col) {
             return {
                 id: col.id,
                 active: col.active,
@@ -805,26 +919,26 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
         this.includes = [];
     }
     Table.prototype = {
-        setDatas: function (datas, compares) {
+        setDatas: function(datas, compares) {
             if (datas) {
-                angular.forEach(datas, function (item, index) {
+                angular.forEach(datas, function(item, index) {
                     item.$id = index + 1;
                 });
             }
             this.datas = datas;
             if (compares) {
-                angular.forEach(compares, function (item, index) {
+                angular.forEach(compares, function(item, index) {
                     item.$id = index + 1;
                 });
             }
             this.compares = compares;
             this.update();
         },
-        update: function () {
+        update: function() {
             this.rows = [];
             this.groupBy(this.datas);
         },
-        groupBy: function (datas) {
+        groupBy: function(datas) {
             var rows = this.rows;
             var cols = this.cols;
             var excludes = this.excludes;
@@ -832,14 +946,14 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
             var compares = this.compares;
             cols.reset();
             var compared = null;
-            angular.forEach(datas, function (row) {
+            angular.forEach(datas, function(row) {
                 var has = true;
-                angular.forEach(excludes, function (item) {
+                angular.forEach(excludes, function(item) {
                     if (item.active) {
                         has = has && item.filter(row);
                     }
                 });
-                angular.forEach(includes, function (item) {
+                angular.forEach(includes, function(item) {
                     if (item.active) {
                         has = has && item.filter(row);
                     }
@@ -850,14 +964,14 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
             });
             if (compares) {
                 compared = [];
-                angular.forEach(compares, function (row) {
+                angular.forEach(compares, function(row) {
                     var has = true;
-                    angular.forEach(excludes, function (item) {
+                    angular.forEach(excludes, function(item) {
                         if (item.active) {
                             has = has && item.filter(row);
                         }
                     });
-                    angular.forEach(includes, function (item) {
+                    angular.forEach(includes, function(item) {
                         if (item.active) {
                             has = has && item.filter(row);
                         }
@@ -868,39 +982,62 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
                     }
                 });
             }
-            cols.makeStatic(rows);
+            this.filtered = cols.toStatic(rows);
+            // this.filtered = this.rows.slice();
+            this.setOrderBy();
             if (this.after && angular.isFunction(this.after)) {
                 this.after(rows);
             }
         },
-        resetFilters: function () {
+        setOrderBy: function() {
+            var defaults = [];
+            var orders = [];
+            angular.forEach(this.cols, function(col, index) {
+                if (col.static.active) {
+                    defaults.push(col.raw);
+                    if (col.order.sort !== 0) {
+                        orders.push((col.order.sort === -1 ? '-' : '') + col.raw);
+                    }
+                }
+            });
+            this.orderBy = orders.length ? orders : null; // defaults;
+            // this.filtered = orderByFilter(this.filtered, this.orderBy);
+            console.log('Table.sort', 'orderBy', this.orderBy);
+        },
+        exclude: function(item) {
+            item.active = !item.active;
+            this.update();
+        },
+        include: function(item) {
+            item.active = !item.active;
+            this.update();
+        },
+        getRowClass: function(item) {
+            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
+        },
+        onOpen: function(item) {
+            console.log('onOpen', item);
+        },
+        has: function(mode) {
+            return (this.cols ? this.cols.show[mode] : null);
+        },
+        resetFilters: function() {
             var table = this;
-            angular.forEach(table.cols, function (col, key) {
-                angular.forEach(table.defaults, function (item) {
+            angular.forEach(table.cols, function(col, key) {
+                angular.forEach(table.defaults, function(item) {
                     if (col.id === item.id) {
                         angular.isFunction(col.active) ? null : col.active = item.active;
                     }
                 });
-                col.filters = [];
+                col.filters.reset();
             });
-            table.cols = table.cols.sort(function (a, b) {
+            table.cols = table.cols.sort(function(a, b) {
                 return a.id - b.id;
             });
             // table.cols.radios.workloads = 'supplier.name'; //??? default radios ???
             table.update();
         },
-        exclude: function (item) {
-            item.active = !item.active;
-            this.update();
-        },
-        include: function (item) {
-            item.active = !item.active;
-            this.update();
-        },
-        toggleCol: function (col) {
-            this.cols.toggleColumns(col);
-            this.update();
-        },
+        /*
         doFilter: function (cols) {
             // this.update(); // doing regroup
             return function (item) {
@@ -913,35 +1050,23 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
                 return has;
             };
         },
-        doFilterMultiple: function (cols) {
+        */
+        doFilterMultiple: function(cols) {
             // table.update(); // doing regroup
-            return function (item) {
+            return function(item) {
                 var has = true;
-                angular.forEach(cols, function (col) {
-                    if (col.isActive() && col.filters.length) {
-                        has = has && col.filters.indexOf(col.getKey(item)) != -1;
-                    }
-                }.bind(this));
+                angular.forEach(cols, function(col) {
+                    has = has && col.filter(item);
+                });
                 return has;
             };
         },
-        doFilterColumns: function (cols) {
-            return function (col) {
+        doFilterColumns: function(cols) {
+            return function(col) {
                 return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
             };
         },
-        doOrder: function (cols) {
-            return function (item) {
-                return cols.getSortKey(item);
-            };
-        },
-        getRowClass: function (item) {
-            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
-        },
-        onOpen: function (item) {
-            console.log('onOpen', item);
-        },
-        toggle: function (mode) {
+        toggle: function(mode) {
             var value = null;
             if (this.cols) {
                 var show = this.cols.show;
@@ -958,13 +1083,31 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
             }
             return value;
         },
-        has: function (mode) {
-            return (this.cols ? this.cols.show[mode] : null);
+        toggleCol: function(col) {
+            this.cols.toggleColumns(col);
+            this.update();
+        },
+        toggleOrder: function(col) {
+            angular.forEach(this.cols, function(item) {
+                if (item.id !== col.id) {
+                    item.order.set(0);
+                }
+            });
+            col.order.toggle();
+            this.setOrderBy();
+        },
+        swap: function(from, to) {
+            // console.log('Table.swap', 'from', from, 'to', to);
+            var index = this.cols.indexOf(from);
+            var item = this.cols[index];
+            this.cols.splice(index, 1);
+            index = this.cols.indexOf(to);
+            this.cols.splice(index, 0, item);
         },
     };
-    Table.fromDatas = function (datas) {
+    Table.fromDatas = function(datas) {
         if (!angular.isArray(datas) || !datas.length > 1) {
-            angular.forEach(datas, function (data) {
+            angular.forEach(datas, function(data) {
                 if (angular.isArray(data)) {
                     datas = data;
                 }
@@ -979,16 +1122,16 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', function ($parse, Colu
     return Table;
 }]);
 
-module.service('Droppables', ['ElementRect', function (ElementRect) {
+module.service('Droppables', ['ElementRect', function(ElementRect) {
     this.natives = [];
     this.callbacks = [];
     this.rects = [];
-    this.add = function (nativeElement, callback) {
+    this.add = function(nativeElement, callback) {
         this.natives.push(nativeElement);
-        this.callbacks.push(callback || function () { });
+        this.callbacks.push(callback || function() {});
         this.rects.push(ElementRect.fromNative(nativeElement));
     };
-    this.remove = function (nativeElement) {
+    this.remove = function(nativeElement) {
         var index = this.natives.indexOf(nativeElement);
         if (index !== -1) {
             this.natives.splice(index, 1);
@@ -996,9 +1139,10 @@ module.service('Droppables', ['ElementRect', function (ElementRect) {
             this.rects.splice(index, 1);
         }
     };
-    this.getIntersections = function (item) {
-        var intersections = [], element;
-        angular.forEach(this.rects, function (rect, index) {
+    this.getIntersections = function(item) {
+        var intersections = [],
+            element;
+        angular.forEach(this.rects, function(rect, index) {
             rect.set(rect.native);
             element = angular.element(rect.native);
             element.removeClass('dropping');
@@ -1011,7 +1155,7 @@ module.service('Droppables', ['ElementRect', function (ElementRect) {
                 element.removeClass('over');
             }
         }.bind(this));
-        intersections.sort(function (a, b) {
+        intersections.sort(function(a, b) {
             if (a.distance < b.distance) {
                 return -1;
             }

@@ -275,6 +275,7 @@ $primary: #111;
             overflow: hidden;
         }
     }
+    /*
     thead {
         tr:last-child {
             th:not(.compact) {
@@ -282,6 +283,7 @@ $primary: #111;
             }
         }
     }
+    */
     tbody {
         &.opened {
             margin-top: 1px;
@@ -521,14 +523,6 @@ $primary: #111;
     }
 }
 
-td.toggle {
-    .loading {
-        position: absolute;
-        right: 20px;
-        top: 8px;
-    }
-}
-
 [sortable] {
     cursor: pointer;
     @include transition();
@@ -650,19 +644,17 @@ td.toggle {
     }
 }
 
-td,
-th {
-    &.dynamic {
-        background: rgba($primary, 0.05);
+
+/*
+
+td.toggle {
+    .loading {
+        position: absolute;
+        right: 20px;
+        top: 8px;
     }
 }
 
-.aggregate+.aggregate {
-    border-left: 1px solid rgba($primary, 0.05);
-}
-
-
-/*
 :focus {
     outline: none;
 }

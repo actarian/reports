@@ -158,7 +158,16 @@
 
 .atable-default {
   margin-bottom: 15px;
-  background-color: white; }
+  background-color: white;
+  /*
+    thead {
+        tr:last-child {
+            th:not(.compact) {
+                border-bottom: 2px solid #888;
+            }
+        }
+    }
+    */ }
   .atable-default th,
   .atable-default label {
     font-size: 10px;
@@ -338,8 +347,6 @@
       white-space: nowrap;
       text-overflow: ellipsis;
       overflow: hidden; }
-  .atable-default thead tr:last-child th:not(.compact) {
-    border-bottom: 2px solid #888; }
   .atable-default tbody.opened {
     margin-top: 1px;
     margin-bottom: 1px;
@@ -533,7 +540,16 @@
 @media (min-width: 992px) {
   .atable-responsive-default {
     margin-bottom: 15px;
-    background-color: white; }
+    background-color: white;
+    /*
+    thead {
+        tr:last-child {
+            th:not(.compact) {
+                border-bottom: 2px solid #888;
+            }
+        }
+    }
+    */ }
     .atable-responsive-default .th-id {
       width: 55px;
       font-weight: 600;
@@ -624,8 +640,6 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden; }
-    .atable-responsive-default thead tr:last-child th:not(.compact) {
-      border-bottom: 2px solid #888; }
     .atable-responsive-default tbody.opened {
       margin-top: 1px;
       margin-bottom: 1px;
@@ -733,11 +747,6 @@
     .atable-responsive-default .sub label,
     .atable-responsive-default .sub span {
       color: white; } }
-
-td.toggle .loading {
-  position: absolute;
-  right: 20px;
-  top: 8px; }
 
 [sortable] {
   cursor: pointer;
@@ -933,14 +942,16 @@ td.toggle .loading {
   .atable-dynamic th > .col-text {
     text-transform: uppercase; }
 
-td.dynamic,
-th.dynamic {
-  background: rgba(17, 17, 17, 0.05); }
-
-.aggregate + .aggregate {
-  border-left: 1px solid rgba(17, 17, 17, 0.05); }
-
 /*
+
+td.toggle {
+    .loading {
+        position: absolute;
+        right: 20px;
+        top: 8px;
+    }
+}
+
 :focus {
     outline: none;
 }
@@ -1120,3 +1131,10 @@ th[droppable-item]:not([disabled]).dropping {
 
 .repotable td {
   border-bottom: 1px solid #0002f3; }
+
+.repotable td.dynamic,
+.repotable th.dynamic {
+  background: rgba(17, 17, 17, 0.05); }
+
+.repotable .aggregate + .aggregate {
+  border-left: 1px solid rgba(17, 17, 17, 0.05); }

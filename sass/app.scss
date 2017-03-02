@@ -127,4 +127,13 @@ th {
     td {
         border-bottom: 1px solid $accent;
     }
+    td,
+    th {
+        &.dynamic {
+            background: rgba($primary, 0.05);
+        }
+    }
+    .aggregate+.aggregate {
+        border-left: 1px solid rgba($primary, 0.05);
+    }
 }
