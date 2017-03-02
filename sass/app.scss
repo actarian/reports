@@ -1,26 +1,20 @@
-
 @import "mixins";
 @import "droppables";
 @import "navs";
 @import "tables";
-
 th {
     &[draggable-item] {
         height: 44px;
-
         &:not([disabled]) {
             &:hover {
                 background-color: #f0f0f0;
             }
-
             &.dragging {
                 background-color: #fff;
             }
         }
     }
-
     &[droppable-item] {
-
         &:not([disabled]) {
             &.dropping {
                 background-color: #f8f8f8;
@@ -38,54 +32,94 @@ th {
 }
 
 .repotable {
-
     $accent: #0002f3;
-$negative: #ffffff;
-
+    $negative: #ffffff;
     section {
         border: 4px solid $accent;
         border-radius: 6px;
         padding: 10px;
     }
-
     h6 {
-            background:$accent;
-            color: $negative;
-    padding: 10px;
-    margin: -10px -10px 0 -10px;
+        position: relative;
+        background: $accent;
+        color: $negative;
+        padding: 10px;
+        margin: -10px -10px 0 -10px;
+        @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.3));
     }
-
     .inner {
         max-height: calc(100vh - 300px);
         overflow: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
     }
-
     .filter-btn {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border: 0 solid #0002f3;
+        background: #0002f3;
+        color: #fff;
+        line-height: 30px;
+        height: 30px;
+        vertical-align: middle;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        span {
+            display: block;
+            position: relative;
+            @include transform(translateY(0));
+            @include transition;
+        }
+        &:after {
+            content: '9';
+            font-family: 'Project';
+            font-size: 13px;
+            display: block;
+            position: absolute;
+            right: 0;
+            float: none;
+            border: none;
+            width: 100%;
+            height: 30px;
+            line-height: 30px;
+            background: transparent;
+            text-align: middle;
+            top: 0;
+            left: 0;
+            margin: 0;
+            padding: 0;
+            @include transform(translateY(-100%));
+            @include transition;
+        }
+        &:hover {
+            span {
+                @include transform(translateY(100%));
+            }
+            &:after {
+                @include transform(translateY(0));
+            }
+        }
+    }
+    .th-label {
         display: block;
         width: 100%;
-        margin: 10px 0 0;
-        border-radius: 0;
-        border: 0px solid $accent;
-        background: $accent;
-        color: $negative;
-        line-height: 20px;
-        font-size: 11px;
-        font-weight: 800;
-        text-transform: uppercase;
+        height: 30px;
+        line-height: 30px;
+        padding: 0 8px;
     }
-
     th {
         vertical-align: bottom;
         color: black;
-        padding: 20px 0 0px 0;
+        padding: 10px 0 0 0;
     }
-
-    th + th {
+    th+th {
         padding-left: 1px;
     }
-
     td {
         border-bottom: 1px solid $accent;
     }

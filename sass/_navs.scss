@@ -1,20 +1,16 @@
-﻿
-@import "../bower_components/bootstrap/scss/mixins";
+﻿@import "../bower_components/bootstrap/scss/mixins";
 @import "../bower_components/bootstrap/scss/variables";
 @import "mixins";
-
 .nav {
     list-style: none;
     text-align: left;
     padding-left: 0;
     margin-bottom: 0;
-
     li {
         margin: 0;
         padding: 0;
         display: block;
-
-        > a {
+        >a {
             display: block;
             text-align: left;
         }
@@ -28,8 +24,7 @@
     margin: 10px 0 10px 0;
     padding: 0;
     border: 1px solid #f0f0f0;
-    box-shadow: 0 10px 20px -5px rgba(0,0,0,0.2);
-
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
     .nav-item {
         display: block;
         position: relative;
@@ -40,19 +35,16 @@
         text-transform: uppercase;
         font-size: 10px;
         font-weight: 900;
-
         label {
             padding: 0;
             margin: 0;
             line-height: 20px;
             color: #888;
             pointer-events: none;
-
             input {
                 vertical-align: middle;
                 margin-right: 4px;
             }
-
             span {
                 display: inline-block;
                 vertical-align: middle;
@@ -62,17 +54,14 @@
                 max-width: 240px;
             }
         }
-
         &:hover {
             background: #f0f0f0;
-
             label {
                 color: #000;
             }
         }
     }
-
-    .nav-item + .nav-item {
+    .nav-item+.nav-item {
         border-top: 1px solid #f0f0f0;
     }
 }
