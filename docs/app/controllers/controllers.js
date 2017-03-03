@@ -38,8 +38,8 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
         name: 'Beers!',
         uri: 'https://api.punkapi.com/v2/beers?per_page=80',
     }, {
-        name: 'Minor Planet Center Api',
-        uri: 'https://www.asterank.com/api/mpc',
+        name: 'Drone Streak Api',
+        uri: 'https://api.dronestre.am/data',
     },{
         name: 'Earthquakes USGS',
         uri: 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01&endtime=2017-01-02',

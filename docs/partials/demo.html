@@ -96,6 +96,7 @@
 <script type="text/ng-template" id="partials/table-filtered">
 
     <table class="atable-responsive atable-responsive-default atable-dynamic" style="table-layout: auto; width: 100%;">
+        <!-- HEAD -->
         <thead>
             <tr>
                 <th class="{{col.headerClass}}" ng-repeat="col in table.filtered.cols track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
@@ -105,22 +106,12 @@
                             <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
                                 <span>FILTER</span>
                             </button>
-                            <!--
-                            <button class="btn btn-xs btn-outline-foreground btn-block dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
-                                <span>FILTRA</span>
-                            </button>
-                            -->
                             <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.id">
                                 <li class="nav-item" ng-repeat="value in col.filters.values" ng-click="stop($event) && col.filters.toggle(value)">
                                     <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="value.active" /> <span class="label" ng-bind="value.name">-</span></label>
                                 </li>
                             </ul>
                         </div>
-                        <!--
-                        <button class="btn btn-xs btn-outline-foreground btn-block" ng-click="table.toggleOrder(col)" ng-title="col.order.name">
-                            <span><span ng-bind="col.order.name"></span> <i ng-class="{ 'icon-sort-asc' : col.order.asc, 'icon-sort-desc' : col.order.desc }"></i></span>
-                        </button>
-                        -->
                         <button class="sort-btn" ng-click="table.toggleOrder(col)" ng-title="col.order.name">
                             <span><span ng-bind="col.order.name"></span> <i ng-class="{ 'icon-sort-asc' : col.order.asc, 'icon-sort-desc' : col.order.desc }"></i></span>
                         </button>
@@ -128,14 +119,25 @@
                 </th>
             </tr>
         </thead>
+        <!-- ROWS -->
         <tbody ng-repeat="row in table.filtered.rows | filter:table.doFilterStatic(table.filtered.cols) | orderBy:table.filteredOrderBy | limitTo:100 track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
             <tr>
-                <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.baseClass}} {{cell.columnClass}}">
+                <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.cellClass}} {{cell.columnClass}}">
                     <label ng-bind="cell.colName"></label>
                     <span class="{{appearance.tableColumnClass(cell.type)}} {{cell.textClass}}" ng-class="{ 'text-underline': cell.pop }" ng-bind="cell.getName()" pop="cell.pop"></span>
                 </td>
             </tr>
         </tbody>
+        <!-- FOOT -->
+        <tfoot ng-if="!source.state.isBusy && table.filtered.rows.length">
+            <tr class="row-recap">
+                <td class="{{col.headerClass}}" ng-repeat="col in table.filtered.cols track by $index">
+                    <label ng-if="col.aggregate || col.compare" ng-bind="col.colName"></label>
+                    <span ng-if="col.aggregate || col.compare" class="tag {{col.textClass}} {{col.totalClass}}" ng-bind="col.getTotalName()"></span>
+                </td>
+            </tr>
+        </tfoot>
+        <!-- NO RESULTS -->
         <tbody ng-if="!source.state.isBusy && !table.filtered.rows.length">
             <tr>
                 <td class="text-xs-center" colspan="{{table.cols.getCount()}}">
@@ -143,14 +145,7 @@
                 </td>
             </tr>
         </tbody>
-        <tfoot ng-if="!source.state.isBusy && table.filtered.rows.length">
-            <tr class="row-recap">
-                <td ng-repeat="col in table.filtered.cols track by $index" ng-class="col.headerClass">
-                    <label ng-bind="col.colName" ng-if="col.aggregate || col.compare"></label>
-                    <span class="tag {{col.textClass}}" ng-class="col.getTotalClass(filtered)" ng-bind="col.getTotal(filtered)" ng-if="col.aggregate || col.compare"></span>
-                </td>
-            </tr>
-        </tfoot>
+
     </table>
 
 </script>
