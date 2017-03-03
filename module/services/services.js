@@ -66,6 +66,13 @@ module.factory('Filters', [function() {
                 return 0;
             });
         },
+        filter: function (cell) {
+            if (this.search.length) {
+                return (this.search.indexOf(cell.key) !== -1);
+            } else {
+                return true;
+            }
+        },
     };
     return Filters;
 }]);
@@ -314,7 +321,7 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'col
             if (this.dynamic) {
                 return this.getValueFormatted(item);
             } else {
-                return item.static[this.id].value;
+                return item.static[this.id].name;
             }
         },
         getTotal: function(filtered) {
@@ -496,15 +503,25 @@ module.factory('Column', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'col
                 this.setters.raw(item, (this.getters.post(item) || 0));
             }
             var col = this;
-            var item = item.static[col.id] = {
+            var cell = item.static[col.id] = {
                 baseClass: col.getCellClass(item),
                 textClass: col.getTextClass(item),
-                key: col.getKey(item),
-                value: col.getValueFormatted(item),
+
                 link: col.link ? col.link(item) : null,
                 pop: col.pop ? col.pop(item) : null,
+                
+                key: col.getKey(item),
+                
+                name: col.getValueFormatted(item),
+                value: col.getValue(item),
+                getValue: function() {
+                    return col.dynamic ? col.getValue(item) : cell.value;
+                },
+                getName: function() {
+                    return col.dynamic ? col.getValueFormatted(item) : cell.name;
+                },
             };
-            return item;
+            return cell;
         },
     };
     Column.types = colTypes;
@@ -761,7 +778,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function($pa
                     }
                 }
             });
-            console.log(rows);
+            console.log('Table.toStatic', rows.length);
             return { cols: cols, rows: rows };
         },
         activeInRange: function(range) {
@@ -875,7 +892,7 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function($pa
                     var col = {
                         value: prop,
                         type: colTypes.TEXT,
-                        active: cols.length < 3,
+                        active: cols.length < 6,
                     };
                     if (angular.isNumber(item)) {
                         col.type = colTypes.NUMBER;
@@ -982,27 +999,35 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
                     }
                 });
             }
-            this.filtered = cols.toStatic(rows);
-            // this.filtered = this.rows.slice();
-            this.setOrderBy();
+            this.toStatic();
             if (this.after && angular.isFunction(this.after)) {
                 this.after(rows);
             }
         },
+        toStatic: function () {
+            this.filtered = this.cols.toStatic(this.rows);
+            // this.filtered = this.rows.slice();
+            this.setOrderBy();
+        },
         setOrderBy: function() {
             var defaults = [];
             var orders = [];
+            var ordersFiltered = []; 
+            var sign;
             angular.forEach(this.cols, function(col, index) {
                 if (col.static.active) {
-                    defaults.push(col.raw);
                     if (col.order.sort !== 0) {
-                        orders.push((col.order.sort === -1 ? '-' : '') + col.raw);
+                        sign = (col.order.sort === -1 ? '-' : '');
+                        orders.push(sign + col.raw);
+                        ordersFiltered.push(sign + 'cols[' + defaults.length + '].getValue()');
                     }
+                    defaults.push(col.raw);
                 }
             });
             this.orderBy = orders.length ? orders : null; // defaults;
+            this.filteredOrderBy = ordersFiltered.length ? ordersFiltered : null; // defaults;
             // this.filtered = orderByFilter(this.filtered, this.orderBy);
-            console.log('Table.sort', 'orderBy', this.orderBy);
+            console.log('Table.sort', 'filteredOrderBy', this.filteredOrderBy);
         },
         exclude: function(item) {
             item.active = !item.active;
@@ -1011,12 +1036,6 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
         include: function(item) {
             item.active = !item.active;
             this.update();
-        },
-        getRowClass: function(item) {
-            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
-        },
-        onOpen: function(item) {
-            console.log('onOpen', item);
         },
         has: function(mode) {
             return (this.cols ? this.cols.show[mode] : null);
@@ -1061,6 +1080,15 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
                 return has;
             };
         },
+        doFilterStatic: function(cols) {
+            return function(row) {
+                var has = true;
+                angular.forEach(cols, function(col, index) {
+                    has = has && col.filters.filter(row.cols[index]);
+                });
+                return has;
+            };
+        },
         doFilterColumns: function(cols) {
             return function(col) {
                 return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
@@ -1081,6 +1109,7 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
                 }
                 value = show[mode];
             }
+            this.toStatic(); //!!! nuovo
             return value;
         },
         toggleCol: function(col) {
@@ -1103,6 +1132,13 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
             this.cols.splice(index, 1);
             index = this.cols.indexOf(to);
             this.cols.splice(index, 0, item);
+        },
+        // eliminare
+        getRowClass: function(item) {
+            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
+        },
+        onOpen: function(item) {
+            console.log('onOpen', item);
         },
     };
     Table.fromDatas = function(datas) {

@@ -42,6 +42,24 @@ th {
         border: 4px solid $accent;
         border-radius: 6px;
         padding: 10px;
+        padding-bottom: 40px;
+        overflow: hidden;
+        
+        .filters {
+            position: absolute;
+            bottom: 40px;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            background: white;
+            transform: translateY(100%);
+            @include transition();
+
+            &.opened {
+                @include transform(translateY(50%));
+            }
+        }
     }
     h6 {
         position: relative;
@@ -56,6 +74,10 @@ th {
         overflow: hidden;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
+    }
+    button:focus {
+        outline: 0;
+        border: none;
     }
     .filter-btn {
         width: 100%;
@@ -109,6 +131,32 @@ th {
             }
         }
     }
+    .sort-btn {
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+        border: 0 solid #eee;
+        background: #eee;
+        color: #111;
+        line-height: 20px;
+        height: 20px;
+        vertical-align: middle;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        padding: 0;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        span {
+            display: block;
+            position: relative;
+        }
+        @include transition;
+        &:hover {
+            background: #bbb;
+        }
+    }
     .th-label {
         display: block;
         width: 100%;
@@ -136,4 +184,5 @@ th {
     .aggregate+.aggregate {
         border-left: 1px solid rgba($primary, 0.05);
     }
+
 }

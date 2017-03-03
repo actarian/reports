@@ -28,17 +28,41 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
         table.setDatas(datas);
     }
 
-    var json = $scope.json = {
-        uris: [
-            'api/restcountries.all.js',
-            'https://restcountries.eu/rest/v2/all',
-            'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100',
-        ],
-    }
-    json.uri = json.uris[0];
+    var paths = $scope.paths = [{
+        name: 'Countries',
+        uri: 'api/restcountries.all.js',
+    }, /*{
+        name: 'Countries',
+        uri: 'https://restcountries.eu/rest/v2/all',
+    }, */{
+        name: 'Beers!',
+        uri: 'https://api.punkapi.com/v2/beers?per_page=80',
+    }, {
+        name: 'Minor Planet Center Api',
+        uri: 'http://www.asterank.com/api/mpc',
+    },{
+        name: 'Earthquakes USGS',
+        uri: 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01&endtime=2017-01-02',
+    },{
+        name: 'Game of Throne Books',
+        uri: 'http://anapioficeandfire.com/api/books',
+    }, {
+        name: 'Game of Throne Houses',
+        uri: 'http://anapioficeandfire.com/api/houses',
+    }, {
+        name: 'Uk Police Data',
+        uri: 'https://data.police.uk/api/crimes-street/all-crime?poly=52.268,0.543:52.794,0.238:52.130,0.478&date=2016-06',
+    }, {
+        name: 'Universities',
+        uri: 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json',
+    }, {
+        name: 'Git',
+        uri: 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100',
+    }];
+    paths.current = paths[0].uri;
     var load = $scope.load = function() {
         if (state.busy()) {
-            var uri = json.uri;
+            var uri = paths.current;
             $http.get(uri).then(function success(response) {
                 var datas = response.data;
                 // var datas = response.data.items;
@@ -52,12 +76,7 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
     load();
 
     $scope.$on('onDropItem', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropItem', 'from', event.from, 'to', event.to);
-        var fromIndex = table.cols.indexOf(event.from.model);
-        var toIndex = table.cols.indexOf(event.to.model);
-        var item = table.cols[fromIndex];
-        table.cols.splice(fromIndex, 1);
-        table.cols.splice(toIndex, 0, item);
+        table.swap(event.from.model, event.to.model);
     });
     $scope.$on('onDropOut', function (scope, event) {
         // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);

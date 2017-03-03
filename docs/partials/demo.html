@@ -6,16 +6,9 @@
     header {
         padding: 20px 0;
     }
-    
-    .filters {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-    }
 </style>
 
+<!-- HEADER -->
 <header>
     <section class="container margin-top-xs-20">
 
@@ -29,11 +22,10 @@
                                 json
                             </button>
                             <div class="dropdown-menu" id="dropdown" ng-if="table.dropdown === 1000">
-                                <a class="dropdown-item" href="#" ng-click="(json.uri = json.uris[0]) && load()">Countries</a>
-                                <a class="dropdown-item" href="#" ng-click="(json.uri = json.uris[2]) && load()">Git</a>
+                                <a class="dropdown-item" href="#" ng-click="( paths.current = path.uri ) && load()" ng-repeat="path in paths track by $index" ng-bind="path.name">-</a>
                             </div>
                         </div>
-                        <input type="text" class="form-control form-control-lg" id="uri" placeholder="https://your.json.api/" ng-model="json.uri">
+                        <input type="text" class="form-control form-control-lg" id="uri" placeholder="https://your.json.api/" ng-model="paths.current">
                         <span class="input-group-btn">
                             <button class="btn btn-secondary" type="button" ng-click="load()">Go!</button> 
                         </span>
@@ -69,6 +61,7 @@
     </section>
 </header>
 
+<!-- MAIN -->
 <main class="container-fluid">
 
     <div class="content report">
@@ -97,26 +90,9 @@
         <!-- ERRORS -->
         <div class="container-fluid" ng-include="'partials/errors'" ng-if="!model.status"></div>
 
-        <!-- FILTERS -->
-        <div class="filters">
-            <div class="container-fluid filters-bar">
-                <div class="container-fluid maxw-lg">
-                    <button type="button" class="btn btn-outline-foreground btn-dashboard" ng-class="{ active: tabs.id == tab.id }" ng-mouseenter="tabs.id = tab.id" ng-repeat="tab in tabs track by $index"><i ng-class="tab.icon"></i> <span ng-bind="tab.name"></span>
-                        </button>
-                    <span class="pull-right pull-xs-right" ng-click="tabs.opened = !tabs.opened">
-                        <i ng-class="{ 'icon-arrow-bottom' : tabs.opened, 'icon-arrow-top' : !tabs.opened }"></i>
-                    </span>
-                </div>
-            </div>
-            <div class="filters-content" ng-show="tabs.opened">
-                <div class="container-fluid maxw-lg" ng-repeat="tab in tabs track by $index">
-                    <div ng-include="tab.template" ng-show="tabs.id === tab.id"></div>
-                </div>
-            </div>
-        </div>
-
 </main>
 
+<!-- TABLE FILTERED -->
 <script type="text/ng-template" id="partials/table-filtered">
 
     <table class="atable-responsive atable-responsive-default atable-dynamic" style="table-layout: auto; width: 100%;">
@@ -126,27 +102,37 @@
                     <div class="draggable">
                         <span class="th-label" title="{{col.colName}}" ng-bind="col.colName"></span>
                         <div ng-if="col.filters.values.length > 1">
+                            <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
+                                <span>FILTER</span>
+                            </button>
+                            <!--
                             <button class="btn btn-xs btn-outline-foreground btn-block dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
                                 <span>FILTRA</span>
                             </button>
+                            -->
                             <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.id">
-                                <li class="nav-item" ng-repeat="item in col.filters.values" ng-click="stop($event) && col.filters.toggle(item)">
-                                    <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="item.active" /> <span class="label" ng-bind="item.name">-</span></label>
+                                <li class="nav-item" ng-repeat="value in col.filters.values" ng-click="stop($event) && col.filters.toggle(value)">
+                                    <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="value.active" /> <span class="label" ng-bind="value.name">-</span></label>
                                 </li>
                             </ul>
                         </div>
+                        <!--
                         <button class="btn btn-xs btn-outline-foreground btn-block" ng-click="table.toggleOrder(col)" ng-title="col.order.name">
+                            <span><span ng-bind="col.order.name"></span> <i ng-class="{ 'icon-sort-asc' : col.order.asc, 'icon-sort-desc' : col.order.desc }"></i></span>
+                        </button>
+                        -->
+                        <button class="sort-btn" ng-click="table.toggleOrder(col)" ng-title="col.order.name">
                             <span><span ng-bind="col.order.name"></span> <i ng-class="{ 'icon-sort-asc' : col.order.asc, 'icon-sort-desc' : col.order.desc }"></i></span>
                         </button>
                     </div>
                 </th>
             </tr>
         </thead>
-        <tbody ng-repeat="row in table.filtered.rows track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
+        <tbody ng-repeat="row in table.filtered.rows | filter:table.doFilterStatic(table.filtered.cols) | orderBy:table.filteredOrderBy | limitTo:100 track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
             <tr>
                 <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.baseClass}} {{cell.columnClass}}">
                     <label ng-bind="cell.colName"></label>
-                    <span class="{{appearance.tableColumnClass(cell.type)}} {{cell.textClass}}" ng-class="{ 'text-underline': cell.pop }" ng-bind="cell.value" pop="cell.pop"></span>
+                    <span class="{{appearance.tableColumnClass(cell.type)}} {{cell.textClass}}" ng-class="{ 'text-underline': cell.pop }" ng-bind="cell.getName()" pop="cell.pop"></span>
                 </td>
             </tr>
         </tbody>
@@ -169,6 +155,7 @@
 
 </script>
 
+<!-- TABLE ROWS -->
 <script type="text/ng-template" id="partials/table-rows">
 
     <table class="atable-responsive atable-responsive-default atable-dynamic" style="table-layout: auto; width: 100%;">
@@ -236,29 +223,54 @@
 
 </script>
 
+<!-- TABLE -->
 <script type="text/ng-template" id="partials/table">
-
-    <div style="display: flex;" ng-if="table.has('table')">
+                
+    <div style="display: flex;">
         <section class="container-fluid shadow section-bordered margin-bottom-xs-40">
-            <h6 class="headline foreground light-60"><span>Report</span></h6>
-            <div class="inner">
-                <!-- <div ng-include="'partials/table-filtered'"></div> -->
-                <div ng-include="'partials/table-rows'"></div>
+            <h6 class="headline foreground light-60"><span>Report</span> <i class="icon-more float-right"></i></h6>
+            <div class="inner" ng-if="table.has('table')">
+                <div ng-include="'partials/table-filtered'"></div>
+                <!-- <div ng-include="'partials/table-rows'"></div> -->
             </div>
+            <!-- FILTERS -->
+            <div class="filters" ng-class="{ opened: tabs.opened }" ng-mouseenter="tabs.opened = true" ng-mouseleave="tabs.opened = false">
+                <div class="container-fluid filters-bar">
+                    <div class="container-fluid maxw-lg">
+                        <button type="button" class="btn btn-outline-foreground btn-dashboard" ng-class="{ active: tabs.id == tab.id }" ng-mouseenter="tabs.id = tab.id" ng-repeat="tab in tabs track by $index">
+                            <i ng-class="tab.icon"></i> <span ng-bind="tab.name"></span>
+                        </button>
+                        <!--
+                        <span class="float-right" ng-click="tabs.opened = !tabs.opened">
+                            <i ng-class="{ 'icon-arrow-bottom' : tabs.opened, 'icon-arrow-top' : !tabs.opened }"></i>
+                        </span>
+                        -->
+                    </div>
+                </div>
+                <div class="filters-content"><!-- ng-show="tabs.opened"> -->
+                    <div class="container-fluid maxw-lg" ng-repeat="tab in tabs track by $index">
+                        <div ng-include="tab.template" ng-show="tabs.id === tab.id"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- ERRORS -->
             <div ng-include="'partials/errors'"></div>
+            <!-- EXCEL -->
             <div class="row" ng-if="filtered.length">
                 <div class="col-lg-12 text-xs-right">
                     <button type="button" ng-click="excel(filteredColumns, filtered)" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
                 </div>
             </div>
+
         </section>
     </div>
 
 </script>
 
+<!-- FILTER COLUMNS -->
 <script type="text/ng-template" id="partials/report/filters/columns">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
-        <h6 class="headline foreground light-60"><span>Columns</span> <span class="pull-xs-right" ng-click="table.resetFilters()">RESET</span></h6>
+        <h6 class="headline foreground light-60"><span>Columns</span> <span class="float-right" ng-click="table.resetFilters()">RESET</span></h6>
         <div class="row" ng-repeat="group in table.colGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
@@ -273,9 +285,10 @@
     </section>
 </script>
 
+<!-- FILTER VALUES -->
 <script type="text/ng-template" id="partials/report/filters/values">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
-        <h6 class="headline foreground light-60"><span>Aggregates</span> <span class="pull-xs-right" ng-click="table.resetFilters()">RESET</span></h6>
+        <h6 class="headline foreground light-60"><span>Aggregates</span> <span class="float-right" ng-click="table.resetFilters()">RESET</span></h6>
         <div class="row" ng-repeat="group in table.valGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
@@ -290,6 +303,7 @@
     </section>
 </script>
 
+<!-- FILTER FLAGS -->
 <script type="text/ng-template" id="partials/report/filters/flags">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
         <h6 class="headline foreground light-60"><span>Options</span></h6>
@@ -320,12 +334,13 @@
     </section>
 </script>
 
+<!-- POP -->
 <script type="text/ng-template" id="partials/pop/project">
     <div class="container">
         <div class="container-fluid">
             <section class="container-fluid shadow section-bordered margin-bottom-xs-10" style="background: white;">
                 <h6 class="headline foreground light-60">
-                    <span>Project #{{item.project.id}}</span> <i class="icon-close pull-xs-right" ng-click="onClose()"></i>
+                    <span>Project #{{item.project.id}}</span> <i class="icon-close float-right" ng-click="onClose()"></i>
                 </h6>
                 <table class="atable-responsive atable-responsive-default atable-dynamic">
                     <thead>
@@ -398,6 +413,7 @@
     </div>
 </script>
 
+<!-- DESCRIPTION -->
 <script type="text/ng-template" id="partials/report/description-date">
     <h6 class="text-xs-center">
         Report dal
@@ -406,12 +422,14 @@
     </h6>
 </script>
 
+<!-- DESCRIPTION -->
 <script type="text/ng-template" id="partials/report/description">
     <h6 class="text-xs-center">
         Report
     </h6>
 </script>
 
+<!-- CHART -->
 <script type="text/ng-template" id="partials/report/chart">
     <canvas id="line" class="chart {{chart.type}}" chart-data="chart.data" chart-labels="chart.labels" chart-series="chart.series" chart-options="chart.options" chart-dataset-override="chart.datasetOverride" chart-click="chart.onClick"></canvas>
 </script>
