@@ -39,16 +39,16 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
         uri: 'https://api.punkapi.com/v2/beers?per_page=80',
     }, {
         name: 'Minor Planet Center Api',
-        uri: 'http://www.asterank.com/api/mpc',
+        uri: 'https://www.asterank.com/api/mpc',
     },{
         name: 'Earthquakes USGS',
         uri: 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01&endtime=2017-01-02',
     },{
         name: 'Game of Throne Books',
-        uri: 'http://anapioficeandfire.com/api/books',
+        uri: 'https://anapioficeandfire.com/api/books',
     }, {
         name: 'Game of Throne Houses',
-        uri: 'http://anapioficeandfire.com/api/houses',
+        uri: 'https://anapioficeandfire.com/api/houses',
     }, {
         name: 'Uk Police Data',
         uri: 'https://data.police.uk/api/crimes-street/all-crime?poly=52.268,0.543:52.794,0.238:52.130,0.478&date=2016-06',
