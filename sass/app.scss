@@ -2,6 +2,8 @@
 * * * * REPOTABLE * * * *
 ************************/
 
+@import "../bower_components/bootstrap/scss/mixins";
+@import "../bower_components/bootstrap/scss/variables";
 @import "mixins";
 @import "droppables";
 @import "navs";
@@ -38,42 +40,45 @@ th {
 .repotable {
     $accent: #0002f3;
     $negative: #ffffff;
+    $hilight: #FFEB3B;
     section {
         border: 4px solid $accent;
         border-radius: 6px;
         padding: 10px;
         padding-bottom: 40px;
         overflow: hidden;
-        
-        .filters {
-            position: absolute;
-            bottom: 40px;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 100;
-            background: white;
-            transform: translateY(100%);
-            @include transition();
-
-            &.opened {
-                @include transform(translateY(50%));
-            }
-        }
     }
     h6 {
         position: relative;
         background: $accent;
         color: $negative;
-        padding: 10px;
-        margin: -10px -10px 0 -10px;
+        padding: 5px 15px;
+        margin: 0 -15px 10px -15px;
         @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.3));
     }
-    .inner {
-        max-height: calc(100vh - 300px);
-        overflow: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+    .headline {
+        @include flex();
+        z-index: 101;
+        padding: 5px 10px;
+        margin: -10px -10px 0 -10px;
+        @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.3));
+        .form-control {
+            width: calc(100% - 50px);
+            background: transparent;
+            border-radius: 3px;
+            color: #fff;
+            padding: 0 4px;
+            line-height: 30px;
+            margin: 0;
+            border: none;
+            &::placeholder {
+                color: white;
+            }
+            &:focus {
+                background: rgba(0, 0, 0, 0.2);
+            }
+            @include transition();
+        }
     }
     button:focus {
         outline: 0;
@@ -180,9 +185,107 @@ th {
         &.dynamic {
             background: rgba($primary, 0.05);
         }
+        &.aggregate {
+            text-align: right;
+        }
     }
     .aggregate+.aggregate {
         border-left: 1px solid rgba($primary, 0.05);
     }
-
+    .filters {
+        position: absolute;
+        top: 246px;
+        left: 0;
+        width: 100%;
+        height: calc(100% - 170px);
+        z-index: 100;
+        background: white;
+        // transform: translateY(-100%);
+        @include transition();
+        /*
+        &.opened {
+            @include transform(translateY(0));
+        }
+        */
+        overflow: hidden;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        .inner {
+            padding: 10px 0;
+        }
+        h4 {
+            margin: 20px 0 10px 0;
+            font-weight: 300;
+        }
+    }
+    /*
+    .fields {
+        @include flex();
+    }
+    */
+    .field {
+        display: inline-block;
+        position: relative;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 23px;
+        margin: 0 2px 2px 0;
+        vertical-align: middle;
+        padding: 2px 6px 0 6px;
+        color: #111;
+        text-transform: capitalize;
+        transition-delay: 0s;
+        border-radius: 3px;
+        width: calc(20% - 2px);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding-right: 7px;
+        background-color: #ddd;
+        border: 0 solid #ddd;
+        &>i {
+            position: absolute;
+            top: 50%;
+            right: 6px;
+            line-height: 14px;
+            @include transform(translateX(20px) translateY(-50%));
+            @include transition();
+        }
+        &:hover:not(:active),
+        &.active {
+            background-color: $hilight;
+            border-color: $hilight;
+        }
+        &.active {
+            &>i {
+                @include transform(translateX(0) translateY(-50%));
+            }
+        }
+        @include transition();
+    }
+    .text-underline {
+        text-decoration: underline;
+    }
+    .text-highlight {
+        background-color: $hilight;
+    }
+    [ng-click] {
+        cursor: pointer;
+    }
+    @include media-breakpoint-down(md) {
+        .inner {
+            min-width: 320px;
+            /* 
+            max-height: calc(100vh - 300px);
+            overflow: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            */
+        }
+    }
+    @include media-breakpoint-up(md) {
+        .inner {
+            min-width: 640px;
+            min-height: 600px;
+        }
+    }
 }

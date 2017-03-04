@@ -3,6 +3,70 @@
 app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'colTypes', function ($scope, $filter, $http, State, Table, colTypes) {
     var state = $scope.state = new State();
 
+    var paths = $scope.paths = [{
+        name: 'Countries',
+        uri: 'api/restcountries.all.js',
+    }, /*{
+        name: 'Countries',
+        uri: 'https://restcountries.eu/rest/v2/all',
+    }, */{
+        name: 'Beers!',
+        uri: 'https://api.punkapi.com/v2/beers?per_page=80',
+    }, /*{
+        name: 'Drone Streak Api',
+        uri: 'https://api.dronestre.am/data',
+    },*/{
+        name: 'Earthquakes USGS',
+        uri: 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01&endtime=2017-01-02',
+    },{
+        name: 'Game of Throne Books',
+        uri: 'https://anapioficeandfire.com/api/books',
+    }, {
+        name: 'Game of Throne Houses',
+        uri: 'https://anapioficeandfire.com/api/houses',
+    }, {
+        name: 'Uk Police Data',
+        uri: 'https://data.police.uk/api/crimes-street/all-crime?poly=52.268,0.543:52.794,0.238:52.130,0.478&date=2016-06',
+    }, {
+        name: 'Universities',
+        uri: 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json',
+    }, {
+        name: 'Git',
+        uri: 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100',
+    }];
+    paths.custom = { name:'Report', uri: null };
+
+    var table;
+    var load = $scope.load = function(path) {
+        if (state.busy()) {
+            var uri = path.uri;
+            paths.current = path;
+            $http.get(uri).then(function success(response) {
+                var datas = response.data;
+                table = $scope.table = Table.fromDatas(datas);
+                table.name = paths.current.name;
+                state.ready();
+            }, function (response) {
+                state.error(response);
+            });
+        }
+    }
+    load(paths[0]);
+
+    $scope.$on('onDropItem', function (scope, event) {
+        table.swap(event.from.model, event.to.model);
+    });
+    $scope.$on('onDropOut', function (scope, event) {
+        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
+    });
+
+    $scope.stop = function ($event) {
+        $event.stopImmediatePropagation();
+        return true;
+    };
+
+/*
+    
     var tabs = $scope.tabs = [{
         id: 1,
         name: 'Columns',
@@ -22,72 +86,6 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
     tabs.opened = false;
     tabs.id = 1;
 
-    var table;
-    function onDatas(datas) {
-        table = $scope.table = Table.fromDatas(datas);
-        table.setDatas(datas);
-    }
-
-    var paths = $scope.paths = [{
-        name: 'Countries',
-        uri: 'api/restcountries.all.js',
-    }, /*{
-        name: 'Countries',
-        uri: 'https://restcountries.eu/rest/v2/all',
-    }, */{
-        name: 'Beers!',
-        uri: 'https://api.punkapi.com/v2/beers?per_page=80',
-    }, {
-        name: 'Drone Streak Api',
-        uri: 'https://api.dronestre.am/data',
-    },{
-        name: 'Earthquakes USGS',
-        uri: 'https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&starttime=2017-01-01&endtime=2017-01-02',
-    },{
-        name: 'Game of Throne Books',
-        uri: 'https://anapioficeandfire.com/api/books',
-    }, {
-        name: 'Game of Throne Houses',
-        uri: 'https://anapioficeandfire.com/api/houses',
-    }, {
-        name: 'Uk Police Data',
-        uri: 'https://data.police.uk/api/crimes-street/all-crime?poly=52.268,0.543:52.794,0.238:52.130,0.478&date=2016-06',
-    }, {
-        name: 'Universities',
-        uri: 'https://raw.githubusercontent.com/Hipo/university-domains-list/master/world_universities_and_domains.json',
-    }, {
-        name: 'Git',
-        uri: 'https://api.github.com/search/repositories?q=tetris+language:javascript&sort=stars&order=desc&per_page=100',
-    }];
-    paths.current = paths[0].uri;
-    var load = $scope.load = function() {
-        if (state.busy()) {
-            var uri = paths.current;
-            $http.get(uri).then(function success(response) {
-                var datas = response.data;
-                // var datas = response.data.items;
-                onDatas(datas);
-                state.ready();
-            }, function (response) {
-                state.error(response);
-            });
-        }
-    }
-    load();
-
-    $scope.$on('onDropItem', function (scope, event) {
-        table.swap(event.from.model, event.to.model);
-    });
-    $scope.$on('onDropOut', function (scope, event) {
-        // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
-    });
-
-    $scope.stop = function ($event) {
-        $event.stopImmediatePropagation();
-        return true;
-    };
-
-/*
     function CountryCols(){
         return [{
             name: 'region', value: 'region', key: 'region', type: colTypes.TEXT, active: true, hasSearch: true, groupBy: true,

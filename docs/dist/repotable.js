@@ -2065,10 +2065,10 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
             angular.forEach(cols, function (col, index) {
                 var last = rows[rows.length - 1].cols[index];
                 col.$last = last;
-                col.getTotalValue = function () {
+                col.getTotalValue = function (rows) {
                     return last.getTotalValue(rows, index);
                 };
-                col.getTotalName = function () {
+                col.getTotalName = function (rows) {
                     return last.getTotalName(rows, index);
                 };
             });
@@ -2098,12 +2098,16 @@ module.factory('Columns', ['$parse', 'Utils', 'Column', 'colTypes', function ($p
                         type: colTypes.TEXT,
                         active: cols.length < 6,
                     };
-                    if (angular.isNumber(item)) {
+                    if (angular.isDate(item) || (angular.isNumber(item) && 
+                        (prop.toLowerCase().indexOf('date') !== -1 || prop.toLowerCase().indexOf('time') !== -1)
+                        )) {
+                        col.type = colTypes.DATE;
+                        col.groupBy = true;
+                        col.hasSearch = true;
+                    } else if (angular.isNumber(item)) {
                         col.type = colTypes.NUMBER;
                         col.aggregate = true;
                         col.color = 1;
-                    } else if (angular.isDate(item)) {
-                        col.type = colTypes.DATE;
                     } else {
                         col.groupBy = true;
                         col.hasSearch = true;
@@ -2131,14 +2135,15 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
         });
         this.colGroups = [{
             name: 'GroupBy',
-            cols: this.cols.getGroups()
+            items: this.cols.getGroups()
         }, ];
         this.valGroups = [{
             name: 'Aggregate',
-            cols: this.cols.getAggregates()
+            items: this.cols.getAggregates()
         }, ];
         this.excludes = [];
         this.includes = [];
+        this.setOptions(options);        
     }
     Table.prototype = {
         setDatas: function (datas, compares) {
@@ -2155,6 +2160,53 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
             }
             this.compares = compares;
             this.update();
+        },
+        setOptions: function (options) {
+            var table = this;
+            this.options = [{
+                name: 'Columns',
+                template: 'partials/report/filters/columns',
+                icon: 'icon-columns',
+                groups: this.colGroups,
+                toggle: function(item) {
+                    return table.toggleCol(item);
+                },
+                active: true,
+            }, {
+                name: 'Values',
+                template: 'partials/report/filters/values',
+                icon: 'icon-values',
+                groups: this.valGroups,
+                toggle: function(item) {
+                    return table.toggleCol(item);
+                },
+            }, {
+                name: 'Options',
+                template: 'partials/report/filters/flags',
+                icon: 'icon-options',
+                rows: [{
+                    name: 'Exclude',
+                    items: this.exclude,
+                    toggle: function (item) {
+                        return table.exclude(item); 
+                    },
+                }, {
+                    name: 'Include',
+                    items: this.includes,
+                    toggle: function (item) {
+                        return table.include(item); 
+                    },
+                }, {
+                    name: 'Flags',
+                    items: [{
+                        name: 'Percentuali di incidenza',
+                        key: 'dynamic',
+                    }],
+                    toggle: function (item) {
+                        return table.toggle(item.key);
+                    }
+                }],
+            },];
         },
         update: function () {
             this.rows = [];
@@ -2269,11 +2321,23 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
             };
         },
         doFilterStatic: function (cols) {
+            var table = this; 
+            var cols = table.cols, cell;
             return function (row) {
                 var has = true;
-                angular.forEach(cols, function (col, index) {
-                    has = has && col.filters.filter(row.cols[index]);
+                angular.forEach(table.filtered.cols, function (col, index) {
+                    cell = row.cols[index];
+                    cell.matches = null;
+                    has = has && col.filters.filter(cell);
                 });
+                if (has && table.search && table.search.length) {
+                    var match = false;
+                    angular.forEach(row.cols, function(cell) {
+                        cell.matches = new RegExp(table.search, 'gim').exec(cell.name);
+                        match = match || (cell.matches !== null);
+                    });
+                    has = has && match;
+                }
                 return has;
             };
         },
@@ -2399,9 +2463,9 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
         },
     };
     Table.fromDatas = function (datas) {
-        if (!angular.isArray(datas) || !datas.length > 1) {
+        if (!angular.isArray(datas) || !datas.length > 1 || !angular.isObject(datas[0])) {
             angular.forEach(datas, function (data) {
-                if (angular.isArray(data)) {
+                if (angular.isArray(data) && data.length && angular.isObject(data[0])) {
                     datas = data;
                 }
             });
@@ -2410,7 +2474,9 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
             datas = [datas];
         }
         var cols = Columns.fromDatas(datas);
-        return new Table(cols);
+        var table = new Table(cols);
+        table.setDatas(datas);
+        return table;
     };
     return Table;
 }]);

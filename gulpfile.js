@@ -3,7 +3,6 @@ var gulp = require('gulp'),
     /*
     less = require('gulp-less'),
     path = require('path'),
-    autoprefixer = require('gulp-autoprefixer'),
     jshint = require('gulp-jshint'),
     csslint = require('gulp-csslint'),
     scsslint = require('gulp-scss-lint'),
@@ -13,6 +12,7 @@ var gulp = require('gulp'),
     rewrite = require('connect-modrewrite'),
     */
 
+    autoprefixer = require('gulp-autoprefixer'),
     coffee = require('gulp-coffee'),
     concat = require('gulp-concat'),
     cssmin = require('gulp-cssmin'),
@@ -44,7 +44,7 @@ gulp.task('sass:compile', function () {
         }))
         .pipe(rename('repotable.css'))
         .pipe(gulp.dest('./docs/dist')) // save .css
-        // .pipe(autoprefixer({ browsers: browserlist })) // autoprefixer
+        .pipe(autoprefixer()) // autoprefixer
         .pipe(cssmin())
         // .pipe(sourcemaps.write('.')) // save .map
         .pipe(rename({
