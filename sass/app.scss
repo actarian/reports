@@ -46,7 +46,7 @@ th {
         border-radius: 6px;
         padding: 10px;
         padding-bottom: 40px;
-        overflow: hidden;
+        // overflow: hidden;
     }
     h6 {
         position: relative;
@@ -58,9 +58,9 @@ th {
     }
     .headline {
         @include flex();
-        z-index: 101;
+        z-index: 1;
         padding: 5px 10px;
-        margin: -10px -10px 0 -10px;
+        margin: -13px -10px 0 -10px;
         @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.3));
         .form-control {
             width: calc(100% - 50px);
@@ -74,8 +74,11 @@ th {
             &::placeholder {
                 color: white;
             }
-            &:focus {
+            &:hover {
                 background: rgba(0, 0, 0, 0.2);
+            }
+            &:focus {
+                background: rgba(0, 0, 0, 0.4);
             }
             @include transition();
         }
@@ -83,6 +86,9 @@ th {
     button:focus {
         outline: 0;
         border: none;
+    }
+    .draggable {
+        background: white;
     }
     .filter-btn {
         width: 100%;
@@ -179,6 +185,11 @@ th {
     }
     td {
         border-bottom: 1px solid $accent;
+        span {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
     td,
     th {
@@ -193,12 +204,12 @@ th {
         border-left: 1px solid rgba($primary, 0.05);
     }
     .filters {
-        position: absolute;
-        top: 246px;
-        left: 0;
-        width: 100%;
-        height: calc(100% - 170px);
-        z-index: 100;
+        // position: absolute;
+        // top: 246px;
+        // left: 0;
+        // width: 100%;
+        // height: calc(100% - 170px);
+        // z-index: 100;
         background: white;
         // transform: translateY(-100%);
         @include transition();
@@ -207,9 +218,9 @@ th {
             @include transform(translateY(0));
         }
         */
-        overflow: hidden;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
+        // overflow: hidden;
+        // overflow-y: auto;
+        // -webkit-overflow-scrolling: touch;
         .inner {
             padding: 10px 0;
         }
@@ -285,7 +296,7 @@ th {
     @include media-breakpoint-up(md) {
         .inner {
             min-width: 640px;
-            min-height: 600px;
+            // min-height: 600px;
         }
     }
 }

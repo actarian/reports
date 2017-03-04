@@ -1164,16 +1164,6 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
             // table.cols.radios.workloads = 'supplier.name'; //??? default radios ???
             table.update();
         },
-        doFilterMultiple: function (cols) {
-            // table.update(); // doing regroup
-            return function (item) {
-                var has = true;
-                angular.forEach(cols, function (col) {
-                    has = has && col.filter(item);
-                });
-                return has;
-            };
-        },
         doFilterStatic: function (cols) {
             var table = this; 
             var cols = table.cols, cell;
@@ -1193,11 +1183,6 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
                     has = has && match;
                 }
                 return has;
-            };
-        },
-        doFilterColumns: function (cols) {
-            return function (col) {
-                return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
             };
         },
         toggle: function (mode) {
@@ -1233,14 +1218,32 @@ module.factory('Table', ['$parse', 'Columns', 'colTypes', 'orderByFilter', funct
         },
         swap: function (from, to) {
             // console.log('Table.swap', 'from', from, 'to', to);
+            from = this.cols[this.filtered.cols.indexOf(from)];
+            to = this.cols[this.filtered.cols.indexOf(to)];
             var index = this.cols.indexOf(from);
             var item = this.cols[index];
             this.cols.splice(index, 1);
             index = this.cols.indexOf(to);
             this.cols.splice(index, 0, item);
+            this.update();
         },
         // ELIMINARE
         /*
+        doFilterColumns: function (cols) {
+            return function (col) {
+                return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
+            };
+        },
+        doFilterMultiple: function (cols) {
+            // table.update(); // doing regroup
+            return function (item) {
+                var has = true;
+                angular.forEach(cols, function (col) {
+                    has = has && col.filter(item);
+                });
+                return has;
+            };
+        },
         doFilter: function (cols) {
             // this.update(); // doing regroup
             return function (item) {

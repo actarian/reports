@@ -864,8 +864,7 @@ th[droppable-item]:not([disabled]).dropping {
     border: 4px solid #0002f3;
     border-radius: 6px;
     padding: 10px;
-    padding-bottom: 40px;
-    overflow: hidden; }
+    padding-bottom: 40px; }
   .repotable h6 {
     position: relative;
     background: #0002f3;
@@ -878,9 +877,9 @@ th[droppable-item]:not([disabled]).dropping {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    z-index: 101;
+    z-index: 1;
     padding: 5px 10px;
-    margin: -10px -10px 0 -10px;
+    margin: -13px -10px 0 -10px;
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
     .repotable .headline .form-control {
       width: calc(100% - 50px);
@@ -898,11 +897,15 @@ th[droppable-item]:not([disabled]).dropping {
       transform-style: preserve-3d; }
       .repotable .headline .form-control::placeholder {
         color: white; }
-      .repotable .headline .form-control:focus {
+      .repotable .headline .form-control:hover {
         background: rgba(0, 0, 0, 0.2); }
+      .repotable .headline .form-control:focus {
+        background: rgba(0, 0, 0, 0.4); }
   .repotable button:focus {
     outline: 0;
     border: none; }
+  .repotable .draggable {
+    background: white; }
   .repotable .filter-btn {
     width: 100%;
     margin: 0;
@@ -997,6 +1000,10 @@ th[droppable-item]:not([disabled]).dropping {
     padding-left: 1px; }
   .repotable td {
     border-bottom: 1px solid #0002f3; }
+    .repotable td span {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis; }
   .repotable td.dynamic,
   .repotable th.dynamic {
     background: rgba(17, 17, 17, 0.05); }
@@ -1006,12 +1013,6 @@ th[droppable-item]:not([disabled]).dropping {
   .repotable .aggregate + .aggregate {
     border-left: 1px solid rgba(17, 17, 17, 0.05); }
   .repotable .filters {
-    position: absolute;
-    top: 246px;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 170px);
-    z-index: 100;
     background: white;
     transition-property: all;
     transition-duration: 250ms;
@@ -1022,10 +1023,7 @@ th[droppable-item]:not([disabled]).dropping {
         &.opened {
             @include transform(translateY(0));
         }
-        */
-    overflow: hidden;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch; }
+        */ }
     .repotable .filters .inner {
       padding: 10px 0; }
     .repotable .filters h4 {
@@ -1088,5 +1086,4 @@ th[droppable-item]:not([disabled]).dropping {
             */ } }
   @media (min-width: 768px) {
     .repotable .inner {
-      min-width: 640px;
-      min-height: 600px; } }
+      min-width: 640px; } }

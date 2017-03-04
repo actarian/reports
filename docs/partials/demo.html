@@ -93,13 +93,12 @@
 </main>
 
 <!-- TABLE -->
-<script type="text/ng-template" id="partials/table">
-                
+<script type="text/ng-template" id="partials/table">      
     <div style="display: flex;">
         <section class="container-fluid shadow section-bordered margin-bottom-xs-40">
             <h6 class="headline foreground light-60">
                 <i ng-class="{ 'icon-search': !table.search, 'icon-close': table.search }" ng-click="table.search = null"></i> 
-                <input type="text" class="form-control" placeholder="{{table.name}}" ng-model="table.search">
+                <input type="text" class="form-control" placeholder="{{table.name}}" ng-model="table.search" ng-model-options="{ allowInvalid: true, debounce: 250 }">
                 <i class="icon-settings float-right" ng-click="tabs.opened = !tabs.opened"></i>
             </h6>
             <div class="inner" ng-if="table.has('table')">
@@ -115,10 +114,8 @@
                     <button type="button" ng-click="excel(filteredColumns, filtered)" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
                 </div>
             </div>
-
         </section>
     </div>
-
 </script>
 
 <!-- TABLE FILTERED -->
@@ -149,7 +146,7 @@
             </tr>
         </thead>
         <!-- ROWS -->
-        <tbody ng-repeat="row in table.filtered.rows | filter:table.doFilterStatic(table.filtered.cols) | orderBy:table.filteredOrderBy as filteredRows track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
+        <tbody ng-repeat="row in table.filtered.rows | filter:table.doFilterStatic(table.filtered.cols) | orderBy:table.filteredOrderBy | limitTo:(tabs.opened ? 3 : null) as filteredRows track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
             <tr>
                 <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.cellClass}} {{cell.columnClass}}">
                     <label ng-bind="cell.colName"></label>
