@@ -111,7 +111,7 @@
             <!-- EXCEL -->
             <div class="row" ng-if="filtered.length">
                 <div class="col-lg-12 text-xs-right">
-                    <button type="button" ng-click="excel()" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
+                    <button type="button" ng-click="excel(filteredColumns, filtered)" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
                 </div>
             </div>
         </section>
@@ -120,18 +120,19 @@
 
 <!-- TABLE FILTERED -->
 <script type="text/ng-template" id="partials/table-filtered">
+
     <table class="atable-responsive atable-responsive-default atable-dynamic" style="table-layout: auto; width: 100%;">
         <!-- HEAD -->
         <thead>
             <tr>
-                <th class="{{col.headerClass}}" ng-repeat="col in table.cols track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
+                <th class="{{col.headerClass}}" ng-repeat="col in table.filtered.cols track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
                     <div class="draggable">
                         <span class="th-label" title="{{col.colName}}" ng-bind="col.colName"></span>
                         <div ng-if="col.filters.values.length > 1">
-                            <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.$id" target="#nav-col-{{col.$id}}">
+                            <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.id" target="#nav-col-{{col.id}}">
                                 <span>FILTER</span>
                             </button>
-                            <ul id="nav-col-{{col.$id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.$id">
+                            <ul id="nav-col-{{col.id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.id">
                                 <li class="nav-item" ng-repeat="value in col.filters.values" ng-click="stop($event) && col.filters.toggle(value)">
                                     <label for="checkbox-{{$index}}"><input name="checkbox-{{$index}}" type="checkbox" ng-model="value.active" /> <span class="label" ng-bind="value.name">-</span></label>
                                 </li>
@@ -145,18 +146,18 @@
             </tr>
         </thead>
         <!-- ROWS -->
-        <tbody ng-repeat="row in table.rows | filter:table.doFilterStatic(table.cols) | orderBy:table.filteredOrderBy | limitTo:(tabs.opened ? 3 : null) as filteredRows track by $index" ng-if="!source.state.isBusy && table.rows.length">
+        <tbody ng-repeat="row in table.filtered.rows | filter:table.doFilterStatic(table.filtered.cols) | orderBy:table.filteredOrderBy | limitTo:(tabs.opened ? 3 : null) as filteredRows track by $index" ng-if="!source.state.isBusy && table.filtered.rows.length">
             <tr>
                 <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.cellClass}} {{cell.columnClass}}">
                     <label ng-bind="cell.colName"></label>
-                    <span class="{{cell.textClass}}" ng-class="{ 'text-underline': cell.pop, 'text-highlight': cell.matches.length }" ng-bind="cell.getName()" pop="cell.pop"></span>
+                    <span class="{{appearance.tableColumnClass(cell.type)}} {{cell.textClass}}" ng-class="{ 'text-underline': cell.pop, 'text-highlight': cell.matches.length }" ng-bind="cell.getName()" pop="cell.pop"></span>
                 </td>
             </tr>
         </tbody>
         <!-- FOOT -->
         <tfoot ng-if="!source.state.isBusy && filteredRows.length">
             <tr class="row-recap">
-                <td class="{{col.headerClass}}" ng-repeat="col in table.cols track by $index">
+                <td class="{{col.headerClass}}" ng-repeat="col in table.filtered.cols track by $index">
                     <label ng-if="col.aggregate || col.compare" ng-bind="col.colName"></label>
                     <span ng-if="col.aggregate || col.compare" class="tag {{col.textClass}} {{col.totalClass}}" ng-bind="col.getTotalName(filteredRows)"></span>
                 </td>
@@ -165,29 +166,33 @@
         <!-- NO RESULTS -->
         <tbody ng-if="!source.state.isBusy && !filteredRows.length">
             <tr>
-                <td class="text-xs-center" colspan="{{table.fields.getCount()}}">
+                <td class="text-xs-center" colspan="{{table.cols.getCount()}}">
                     <p>no results</p>
                 </td>
             </tr>
         </tbody>
+
     </table>
+
 </script>
 
 <!-- FILTERS -->
 <script type="text/ng-template" id="partials/filters">
-    <span class="float-right" ng-click="table.resetFilters()">RESET</span>
-    <!-- OPTIONS -->
-    <div ng-repeat="option in table.options track by $index">
-        <h6><i ng-class="option.icon"></i> <span ng-bind="option.name"></span></h6>
-        <!-- GROUP -->
-        <div ng-repeat="group in option.groups track by $index">
-            <h4 ng-bind="group.name"></h4>
-            <p class="fields">
-                <!-- ITEMS -->
-                <span class="field" ng-class="{ 'active' : item.isActive() }" ng-repeat="item in group.items track by $index" ng-click="group.toggle ? group.toggle(item) : option.toggle(item)">
-                    <span ng-bind="item.name"></span> <i class="icon-check-mark"></i>
-                </span>
-            </p>
+    <div class="container-fluid">
+        <span class="float-right" ng-click="table.resetFilters()">RESET</span>
+        <!-- OPTIONS -->
+        <div ng-repeat="option in table.options track by $index">
+            <h6><i ng-class="option.icon"></i> <span ng-bind="option.name"></span></h6>
+            <!-- GROUP -->
+            <div ng-repeat="group in option.groups track by $index">
+                <h4 ng-bind="group.name"></h4>
+                <p class="fields">
+                    <!-- ITEMS -->
+                    <span class="field" ng-class="{ 'active' : item.isActive() }" ng-repeat="item in group.items track by $index" ng-click="group.toggle ? group.toggle(item) : option.toggle(item)">
+                        <span ng-bind="item.name"></span> <i class="icon-check-mark"></i>
+                    </span>
+                </p>
+            </div>
         </div>
     </div>
 </script>
@@ -218,11 +223,11 @@
 <!-- FILTER COLUMNS -->
 <script type="text/ng-template" id="partials/report/filters/columns">
     <section class="container-fluid shadow section-bordered margin-bottom-xs-10">
-        <h6 class="headline foreground light-60"><span>Fieldumns</span> <span class="float-right" ng-click="table.resetFilters()">RESET</span></h6>
+        <h6 class="headline foreground light-60"><span>Columns</span> <span class="float-right" ng-click="table.resetFilters()">RESET</span></h6>
         <div class="row" ng-repeat="group in table.colGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
-                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleField(col)">
+                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleCol(col)">
                     <span class="tag tag-pill tag-pill-flag" ng-class="{ 'active' : col.isActive() }" draggable="false">
                         <span ng-bind="col.isActive() ? '-' : '+'"></span>
                 <span ng-bind="col.name"></span>
@@ -240,7 +245,7 @@
         <div class="row" ng-repeat="group in table.valGroups track by $index">
             <label class="col-lg-3 col-form-label" ng-bind="group.name"></label>
             <div class="col-lg-9">
-                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleField(col)">
+                <span ng-repeat="col in group.cols track by $index" ng-click="table.toggleCol(col)">
                     <span class="tag tag-pill tag-pill-flag" ng-class="{ 'active' : col.isActive() }" draggable="false">
                         <span ng-bind="col.isActive() ? '-' : '+'"></span>
                 <span ng-bind="col.name"></span>

@@ -52,8 +52,8 @@ th {
         position: relative;
         background: $accent;
         color: $negative;
-        padding: 5px 15px;
-        margin: 0 -15px 10px -15px;
+        padding: 8px 10px;
+        margin: 0 -10px 10px;
         @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.3));
     }
     .headline {
