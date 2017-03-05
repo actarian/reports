@@ -152,40 +152,9 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 this.filters.reset();
             }
         },
-        addValue: function (item) {
-            var key = this.getKey(item);
-            if (!this.filters.has(key)) {
-                var value = this.getRaw(item);
-                var active = this.filters.flags[key];
-                this.filters.add({
-                    id: key,
-                    name: value || '-',
-                    active: active,
-                });
-            }
-        },
-        filter: function (item) {
-            if (this.isActive() && this.filters.search.length) {
-                return (this.filters.search.indexOf(item.cells[this.$id].key) !== -1);
-            } else {
-                return true;
-            }
-        },
-        getKey: function (item) {
-            return this.getters.key(item);
-        },
-        getValue: function (item) {
-            return this.getters.value(item);
-        },
-        getRaw: function (item) {
-            return this.getters.raw(item);
-        },
-        getSource: function (item) {
-            return this.getters.source(item);
-        },
         hasKey: function (item) {
             var has = true;
-            var key = this.getKey(item);
+            var key = this.getters.key(item);
             if (key && this.keys[key] != true) {
                 this.keys[key] = true;
                 has = false;
@@ -228,11 +197,16 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
             }
             return this;
         },
-        getFormatted: function (item) {
-            if (this.dynamic) {
-                return this.formatValue(this.getRaw(item));
-            } else {
-                return item.cells[this.$id].name;
+        addValue: function (item) {
+            var key = this.getters.key(item);
+            if (!this.filters.has(key)) {
+                var value = this.getters.raw(item);
+                var active = this.filters.flags[key];
+                this.filters.add({
+                    id: key,
+                    name: value || '-',
+                    active: active,
+                });
             }
         },
         getFormat: function () {
@@ -268,85 +242,6 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
         },
         getLink: function (item) {
             return angular.isFunction(this.link) ? this.link(item) : null;
-        },
-        getHeaderClass: function () {
-            var cc = [];
-            angular.forEach(this, function (value, key) {
-                if (value === true) {
-                    cc.push(key);
-                }
-            });
-            switch (this.type) {
-                case fieldTypes.NUMBER:
-                case fieldTypes.DOUBLE:
-                case fieldTypes.WEEKS:
-                case fieldTypes.HOURS:
-                case fieldTypes.COSTS:
-                case fieldTypes.PERCENT:
-                case fieldTypes.INCREMENT:
-                    cc.push('text-xs-right');
-                    break;
-            }
-            /*
-            var columnClass = this.getColumnClass();
-            if (columnClass != '') {
-                cc.push(columnClass);
-            }
-            */
-            return cc.join(' ');
-        },
-        getCellClass: function (item) {
-            var cc = [];
-            angular.forEach(this, function (value, key) {
-                if (value === true) {
-                    cc.push(key);
-                }
-            });
-            switch (this.type) {
-                case fieldTypes.LINK:
-                    cc.push('text-underline');
-                    break;
-                case fieldTypes.NUMBER:
-                case fieldTypes.DOUBLE:
-                case fieldTypes.WEEKS:
-                case fieldTypes.HOURS:
-                case fieldTypes.COSTS:
-                    cc.push('text-xs-right');
-                    break;
-                case fieldTypes.PERCENT:
-                    cc.push('text-xs-right');
-                    break;
-                case fieldTypes.INCREMENT:
-                    cc.push('text-xs-right');
-                    break;
-            }
-            return cc.join(' ');
-        },
-        getColumnClass: function () {
-            return this.color ? 'shade-light-blue-' + this.color : '';
-        },
-        getItemClass: function (item) {
-            var cc = [];
-            cc.push(item.cells[this.$id].cellClass);
-            var columnClass = this.getColumnClass();
-            if (columnClass != '') {
-                cc.push(columnClass);
-            }
-            return cc.join(' ');
-        },
-        getTextClass: function (item) {
-            var cc = [];
-            switch (this.type) {
-                case fieldTypes.INCREMENT:
-                    var value = this.getRaw(item);
-                    if (angular.isNumber(value) && value < 0) {
-                        cc.push('text-danger');
-                    } else {
-                        cc.push('text-success');
-                    }
-                    break;
-            }
-            return cc.join(' ');
         },
         isActive: function () {
             if (angular.isFunction(this.active) && this.active) {
@@ -517,17 +412,113 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
             field.total = value;
             return value;
         },
+        getHeaderClass: function () {
+            var cc = [];
+            angular.forEach(this, function (value, key) {
+                if (value === true) {
+                    cc.push(key);
+                }
+            });
+            switch (this.type) {
+                case fieldTypes.NUMBER:
+                case fieldTypes.DOUBLE:
+                case fieldTypes.WEEKS:
+                case fieldTypes.HOURS:
+                case fieldTypes.COSTS:
+                case fieldTypes.PERCENT:
+                case fieldTypes.INCREMENT:
+                    cc.push('text-xs-right');
+                    break;
+            }
+            /*
+            var columnClass = this.getColumnClass();
+            if (columnClass != '') {
+                cc.push(columnClass);
+            }
+            */
+            return cc.join(' ');
+        },
+        getCellClass: function (item) {
+            var cc = [];
+            angular.forEach(this, function (value, key) {
+                if (value === true) {
+                    cc.push(key);
+                }
+            });
+            switch (this.type) {
+                case fieldTypes.LINK:
+                    cc.push('text-underline');
+                    break;
+                case fieldTypes.NUMBER:
+                case fieldTypes.DOUBLE:
+                case fieldTypes.WEEKS:
+                case fieldTypes.HOURS:
+                case fieldTypes.COSTS:
+                    cc.push('text-xs-right');
+                    break;
+                case fieldTypes.PERCENT:
+                    cc.push('text-xs-right');
+                    break;
+                case fieldTypes.INCREMENT:
+                    cc.push('text-xs-right');
+                    break;
+            }
+            return cc.join(' ');
+        },
+        getColumnClass: function () {
+            return this.color ? 'shade-light-blue-' + this.color : '';
+        },
+        getTextClass: function (item) {
+            var cc = [];
+            switch (this.type) {
+                case fieldTypes.INCREMENT:
+                    var value = this.getters.raw(item);
+                    if (angular.isNumber(value) && value < 0) {
+                        cc.push('text-danger');
+                    } else {
+                        cc.push('text-success');
+                    }
+                    break;
+            }
+            return cc.join(' ');
+        },
+        /*
+        getItemClass: function (item) {
+            var cc = [];
+            cc.push(item.cells[this.$id].cellClass);
+            var columnClass = this.getColumnClass();
+            if (columnClass != '') {
+                cc.push(columnClass);
+            }
+            return cc.join(' ');
+        },
+        getFormatted: function (item) {
+            if (this.dynamic) {
+                return this.formatValue(this.getters.raw(item));
+            } else {
+                return item.cells[this.$id].name;
+            }
+        },
+        filter: function (item) {
+            if (this.isActive() && this.filters.search.length) {
+                return (this.filters.search.indexOf(item.cells[this.$id].key) !== -1);
+            } else {
+                return true;
+            }
+        },
+        */
         toStatic: function (item) {
             if (this.post) {
                 this.setters.raw(item, (this.getters.post(item) || 0));
             }
             var field = this;
-            var cell = item.cells[field.$id] = {
+            // var cell = item.cells[field.$id] = {
+            var cell = {
                 cellClass: field.getCellClass(item),
                 textClass: field.getTextClass(item),
-                link: field.link ? field.link(item) : null,
-                pop: field.pop ? field.pop(item) : null,
-                key: field.getKey(item),
+                link: (field.link ? field.link(item) : null),
+                pop: (field.pop ? field.pop(item) : null),
+                key: field.getters.key(item),
                 getValue: function () {
                     if (field.dynamic) {
                         return field.getters.value(item);
@@ -745,7 +736,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             var keys = [];
             angular.forEach(this, function (field) {
                 if (field.isActive() && field.groupBy) {
-                    keys.push(field.getKey(item));
+                    keys.push(field.getters.key(item));
                 }
             });
             return keys.join('-');
@@ -846,7 +837,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             var has = false,
                 index = 0;
             while (index < filtered.length) {
-                has = has || field.getKey(filtered[index]) === id;
+                has = has || field.getters.key(filtered[index]) === id;
                 if (has) {
                     index = filtered.length;
                 } else {
@@ -859,7 +850,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             var values = [];
             angular.forEach(this, function (field) {
                 if (field.isActive() && field.groupBy) {
-                    values.push(field.sort ? $parse(field.sort)(item) : field.formatValue(field.getRaw(item)));
+                    values.push(field.sort ? $parse(field.sort)(item) : field.formatValue(field.getters.raw(item)));
                 }
             });
             return values.join('');
@@ -870,7 +861,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                 cols = [],
                 rows = [],
                 cell;
-            //console.log('Fields.toStatic', 'rows', rows.length);
+            // primo ciclo
             angular.forEach(fields, function (field) {
                 field.filters.removeAll();
                 field.col = {
@@ -922,7 +913,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                     return last.getTotalName(rows, index);
                 };
             });
-            // console.log('Table.toStatic', rows.length);
+            //console.log('Fields.toStatic', 'cols', cols.length, 'rows', rows.length);
             return { cols: cols, rows: rows };
         },
     };
@@ -1077,14 +1068,14 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
             // var compared = null;
             angular.forEach(datas, function (row) {
                 var has = true;
-                angular.forEach(excludes, function (item) {
-                    if (item.active) {
-                        has = has && item.filter(row);
+                angular.forEach(excludes, function (e) {
+                    if (e.active) {
+                        has = has && e.filter(row);
                     }
                 });
-                angular.forEach(includes, function (item) {
-                    if (item.active) {
-                        has = has && item.filter(row);
+                angular.forEach(includes, function (i) {
+                    if (i.active) {
+                        has = has && i.filter(row);
                     }
                 });
                 if (has) {
@@ -1095,14 +1086,14 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
                 // compared = [];
                 angular.forEach(compares, function (row) {
                     var has = true;
-                    angular.forEach(excludes, function (item) {
-                        if (item.active) {
-                            has = has && item.filter(row);
+                    angular.forEach(excludes, function (e) {
+                        if (e.active) {
+                            has = has && e.filter(row);
                         }
                     });
-                    angular.forEach(includes, function (item) {
-                        if (item.active) {
-                            has = has && item.filter(row);
+                    angular.forEach(includes, function (i) {
+                        if (i.active) {
+                            has = has && i.filter(row);
                         }
                     });
                     if (has) {
@@ -1117,27 +1108,28 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
             }
         },
         setOrderBy: function () {
-            var defaults = [];
-            var orders = [];
+            // var defaults = [];
+            // var orders = [];
+            var table = this;
             var defaultsFiltered = [];
             var ordersFiltered = [];
             var sign;
-            angular.forEach(this.fields, function (field, index) {
+            angular.forEach(table.fields, function (field, index) {
                 if (field.col.active) {
                     if (field.order.sort !== 0) {
                         sign = (field.order.sort === -1 ? '-' : '');
-                        ordersFiltered.push(sign + 'cols[' + defaults.length + '].getValue()');
-                        orders.push(sign + field.raw);                        
+                        ordersFiltered.push(sign + 'cols[' + defaultsFiltered.length + '].getValue()');
+                        // orders.push(sign + field.raw);                        
                     }
-                    defaultsFiltered.push('cols[' + defaults.length + '].getValue()');
-                    defaults.push(field.raw);
+                    defaultsFiltered.push('cols[' + defaultsFiltered.length + '].getValue()');
+                    // defaults.push(field.raw);
                 }
             });
-            defaults.length = Math.min(MAX_FIELDS_ORDERED, defaults.length);
-            defaultsFiltered.length = Math.min(3, defaultsFiltered.length);
-            this.orderBy = orders.length ? orders : defaults; // null;
-            this.filteredOrderBy = ordersFiltered.length ? ordersFiltered : defaultsFiltered; // null;
-            // console.log('Table.sort', 'filteredOrderBy', this.filteredOrderBy);
+            // defaults.length = Math.min(MAX_FIELDS_ORDERED, defaults.length);
+            defaultsFiltered.length = Math.min(MAX_FIELDS_ORDERED, defaultsFiltered.length);
+            // table.orderBy = orders.length ? orders : defaults; // null;
+            table.filteredOrderBy = ordersFiltered.length ? ordersFiltered : defaultsFiltered; // null;
+            // console.log('Table.sort', 'filteredOrderBy', table.filteredOrderBy);
         },
         exclude: function (item) {
             item.active = !item.active;
@@ -1239,49 +1231,15 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
             // console.log('Table.swap', fi, ti, field);
             this.update();
         },
-        // ELIMINARE
-        /*
-        doFilterFields: function (cols) {
-            return function (col) {
-                return col.isActive(); // col.dynamic ? (cols.show.dynamic && col.active()) : col.active;
-            };
-        },
-        doFilterMultiple: function (cols) {
-            // table.update(); // doing regroup
-            return function (item) {
-                var has = true;
-                angular.forEach(cols, function (col) {
-                    has = has && col.filter(item);
-                });
-                return has;
-            };
-        },
-        doFilter: function (cols) {
-            // this.update(); // doing regroup
-            return function (item) {
-                var has = true;
-                angular.forEach(cols, function (col) {
-                    if (col.isActive() && col.filters && col.filters.id !== 0) {
-                        has = has && col.getKey(item) === col.filters.id;
-                    }
-                }.bind(this));
-                return has;
-            };
-        },
-        getRowClass: function (item) {
-            return ''; // item.status ? 'status-' + Appearance.negotiationClass(item.status.id) : '';
-        },
-        onOpen: function (item) {
-            console.log('onOpen', item);
-        },
-        */
         toStatic: function () {
-            var filtered = this.fields.toStatic(this.items);
-            this.rows = filtered.rows;
-            this.cols = filtered.cols;
-            this.setOrderBy();
+            var table = this;
+            var filtered = table.fields.toStatic(table.items);
+            table.rows = filtered.rows;
+            table.cols = filtered.cols;
+            table.setOrderBy();
         },
         toJson: function (data) {
+            var table = this;
             var json = {
                 name: 'Repotable',
                 description: 'a view of selected datas', // + $filter('date')(filters.dateFrom, 'dd MMM yyyy') + ' al ' + $filter('date')(filters.dateTo, 'dd MMM yyyy'),
@@ -1289,9 +1247,9 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
             data ? angular.extend(json, data) : null;
             json.columns = [];
             json.rows = [];
-            if (this.rows.length) {
-                var cols = this.cols;
-                var rows = this.rows;
+            if (table.rows.length) {
+                var cols = table.cols;
+                var rows = table.rows;
                 angular.forEach(cols, function (col, index) {
                     json.columns.push({
                         index: index,
@@ -1402,9 +1360,9 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
             }
         },
         addValue: function (item) {
-            var key = this.getKey(item);
+            var key = this.getters.key(item);
             if (!this.filters.has(key)) {
-                var value = this.getRaw(item);
+                var value = this.getters.raw(item);
                 var active = this.filters.flags[key];
                 this.filters.add({
                     id: key,
@@ -1434,7 +1392,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
         },
         hasKey: function (item) {
             var has = true;
-            var key = this.getKey(item);
+            var key = this.getters.key(item);
             if (key && this.keys[key] != true) {
                 this.keys[key] = true;
                 has = false;
@@ -1479,7 +1437,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
         },
         getFormatted: function (item) {
             if (this.dynamic) {
-                return this.formatValue(this.getRaw(item));
+                return this.formatValue(this.getters.raw(item));
             } else {
                 return item.static[this.id].name;
             }
@@ -1587,7 +1545,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
             var cc = [];
             switch (this.type) {
                 case colTypes.INCREMENT:
-                    var value = this.getRaw(item);
+                    var value = this.getters.raw(item);
                     if (angular.isNumber(value) && value < 0) {
                         cc.push('text-danger');
                     } else {
@@ -1776,7 +1734,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 textClass: col.getTextClass(item),
                 link: col.link ? col.link(item) : null,
                 pop: col.pop ? col.pop(item) : null,
-                key: col.getKey(item),
+                key: col.getters.key(item),
                 getValue: function () {
                     if (col.dynamic) {
                         return col.getters.value(item);
@@ -1993,7 +1951,7 @@ module.factory('Columns__', ['$parse', 'Utils', 'Column', 'colTypes', function (
             var keys = [];
             angular.forEach(this, function (col) {
                 if (col.isActive() && col.groupBy) {
-                    keys.push(col.getKey(item));
+                    keys.push(col.getters.key(item));
                 }
             });
             return keys.join('-');
@@ -2094,7 +2052,7 @@ module.factory('Columns__', ['$parse', 'Utils', 'Column', 'colTypes', function (
             var has = false,
                 index = 0;
             while (index < filtered.length) {
-                has = has || col.getKey(filtered[index]) === id;
+                has = has || col.getters.key(filtered[index]) === id;
                 if (has) {
                     index = filtered.length;
                 } else {
@@ -2107,7 +2065,7 @@ module.factory('Columns__', ['$parse', 'Utils', 'Column', 'colTypes', function (
             var values = [];
             angular.forEach(this, function (col) {
                 if (col.isActive() && col.groupBy) {
-                    values.push(col.sort ? $parse(col.sort)(item) : col.formatValue(col.getRaw(item)));
+                    values.push(col.sort ? $parse(col.sort)(item) : col.formatValue(col.getters.raw(item)));
                 }
             });
             return values.join('');
@@ -2493,7 +2451,7 @@ module.factory('Table__', ['$parse', 'Columns', 'colTypes', 'orderByFilter', fun
                 var has = true;
                 angular.forEach(cols, function (col) {
                     if (col.isActive() && col.filters && col.filters.id !== 0) {
-                        has = has && col.getKey(item) === col.filters.id;
+                        has = has && col.getters.key(item) === col.filters.id;
                     }
                 }.bind(this));
                 return has;
