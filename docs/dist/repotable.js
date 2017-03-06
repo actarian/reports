@@ -1290,7 +1290,7 @@ module.factory('Order', [function () {
 }]);
 
 module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fieldTypes', 'fieldTotalTypes', function ($parse, $filter, Utils, Filters, Order, fieldTypes, fieldTotalTypes) {
-    function Field(data) {
+    function Field(data) {        
         this.filters = new Filters();
         this.order = new Order();
         this.typeTotal = this.typeTotal || fieldTotalTypes.SUM;
