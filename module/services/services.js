@@ -234,7 +234,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.PERCENT:
                     format = '0.00%';
                     break;
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     format = '[Color 10]+0.00%;[Red]-0.00%;-';
                     break;
             }
@@ -287,7 +287,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.PERCENT:
                     value = $filter('customNumber')(value, 2, ' %');
                     break;
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     value = angular.isNumber(value) ? (value > 0 ? '+' : '') + $filter('customNumber')(value, 2, ' %') : (value || '-');
                     break;
             }
@@ -299,7 +299,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
         },
         getValueTotal: function (filtered) {
             var value = 0, field = this;
-            if (field.compare && field.type === fieldTypes.INCREMENT) {
+            if (field.compare && field.type === fieldTypes.GAIN) {
                 var current = 0; // (field.getters.raw(item) || 0);
                 var previous = 0; // (this.getters.raw(item) || 0);                
                 angular.forEach(filtered, function (item) {
@@ -355,21 +355,27 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.HOURS:
                 case fieldTypes.COSTS:
                 case fieldTypes.PERCENT:
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
             return cc.join(' ');
         },
         getCellTotal: function (rows, index) {
-            var value = 0, field = this, cell;
-            if (field.compare && field.type === fieldTypes.INCREMENT) {
+            var value = 0, field = this, cell, previousCell;
+            if (field.compare && field.type === fieldTypes.GAIN) {
                 var current = 0;
                 var previous = 0;         
                 angular.forEach(rows, function (row) {
+                    /*
                     cell = row.cols[index];
                     current += (field.$field.getters.raw(item) || 0);
                     previous += (cell.getValue() || 0);
+                    */
+                    cell = row.cols[field.$field.col.index];
+                    previousCell = row.cols[index];
+                    current += (cell.getValue() || 0);
+                    previous += (previousCell.getValue() || 0);
                 });
                 if (previous) {
                     value = (current - previous) / previous * 100;
@@ -426,7 +432,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.HOURS:
                 case fieldTypes.COSTS:
                 case fieldTypes.PERCENT:
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
@@ -459,7 +465,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.PERCENT:
                     cc.push('text-xs-right');
                     break;
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
@@ -471,7 +477,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
         getTextClass: function (item) {
             var cc = [];
             switch (this.type) {
-                case fieldTypes.INCREMENT:
+                case fieldTypes.GAIN:
                     var value = this.getters.raw(item);
                     if (angular.isNumber(value) && value < 0) {
                         cc.push('text-danger');
@@ -520,7 +526,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 pop: (field.pop ? field.pop(item) : null),
                 key: field.getters.key(item),
                 getValue: function () {
-                    if (field.dynamic) {
+                    if (field.dynamic && !field.post) {
                         return field.getters.value(item);
                     } else if (cell.value) {
                         return cell.value;
@@ -529,7 +535,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                     }
                 },
                 getName: function () {
-                    if (field.dynamic) {
+                    if (field.dynamic && !field.post) {
                         return field.formatValue(cell.getValue());
                     } else if (cell.name) {
                         return cell.name;
@@ -579,8 +585,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             }
             data ? angular.extend(options, data) : null;
             // add percentuals and compares
-            var array = [],
-                fields = this;
+            var array = [], fields = this;
             array.radios = {};
             angular.forEach(this, function (field, index) {
                 field.$id = array.length + 1;
@@ -603,7 +608,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                         }));
                     }
                     if (options.compare) {
-                        array.push(new Field({
+                        var fieldPrevious = new Field({
                             $id: array.length + 1,
                             name: 'anno precedente',
                             value: function (item) {
@@ -617,18 +622,24 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                             compare: true,
                             dynamic: true,
                             active: function () {
-                                return array.show.compare && field.active;
+                                return (fields.show.compare && this.$field.active) || false;
                             },
                             $field: field,
-                        }));
+                        });
+                        array.push(fieldPrevious);
                         array.push(new Field({
                             $id: array.length + 1,
                             name: '%',
-                            value: function (item) {
-                                var current = (field.getters.raw(item) || 0);
-                                var previous = (this.getters.raw(item) || 0);
-                                if (previous) {
-                                    return (current - previous) / previous * 100;
+                            value: function (row) {
+                                return 0;
+                            },
+                            post: function (row) {
+                                var current = (field.getters.raw(row) || 0);
+                                var previous = (fieldPrevious.getters.raw(row) || 0);
+                                if (current && previous) {
+                                    return ((current - previous) / previous) * 100;
+                                } else if (current) {
+                                    return Number.POSITIVE_INFINITY; // '+∞ %';
                                 } else {
                                     return null; // '+∞ %';
                                 }
@@ -636,12 +647,12 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                             raw: field.value + 'Gain',
                             source: field.value,
                             key: field.key,
-                            type: fieldTypes.INCREMENT, // field.type, // 
+                            type: fieldTypes.GAIN, // field.type, // 
                             count: field.count,
                             compare: true,
                             dynamic: true,
                             active: function () {
-                                return array.show.compare && field.active;
+                                 return (fields.show.compare && this.$field.active) || false;
                             },
                             $field: field,
                         }));
@@ -682,8 +693,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             angular.forEach(this, function (field) {
                 if (field.compare) {
                     var value = field.getters.source(row);
-                    field.setters.raw(row, value);
-                    field.setters.source(row, 0); // !!! _1_
+                    field.setters.raw(row, value);      
                 }
             });
             /*
@@ -699,7 +709,8 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
         },
         aggregation: function (item, row, comparing) {
             angular.forEach(this, function (field) {
-                if ((field.isActive() || field.always) && (comparing ? field.compare : !field.compare)) {
+                var mode = (comparing ? field.compare : !field.compare);
+                if ((field.isActive() || field.always) && mode) {
                     if (field.count) {
                         field.addCount(item, row);
                     } else if (comparing || field.aggregate) {
@@ -862,7 +873,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                 rows = [],
                 cell;
             // primo ciclo
-            angular.forEach(fields, function (field) {
+            angular.forEach(fields, function (field, index) {
                 field.filters.removeAll();
                 field.col = {
                     active: field.isActive(),
@@ -879,6 +890,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                     compare: field.compare,
                     filters: field.filters,
                     order: field.order,
+                    originaIndex: index,
                 };
                 if (field.col.active) {
                     field.col.index = cols.length;
@@ -887,7 +899,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
             });
             // lasciare serve un secondo ciclo!
             angular.forEach(fields, function (field) {
-                if (field.col.active || field.dynamic || field.always) {
+                if (field.col.active || (field.dynamic && !field.compare) || field.always) {
                     angular.forEach(items, function (item, i) {
                         cell = field.toStatic(item);
                         if (field.hasSearch && field.groupBy) {
@@ -907,11 +919,15 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                 var last = rows[rows.length - 1].cols[index];
                 field.$last = last;
                 field.getTotalValue = function (rows) {
-                    return last.getTotalValue(rows, index);
+                    return this.$last.getTotalValue(rows, index);
                 };
                 field.getTotalName = function (rows) {
-                    return last.getTotalName(rows, index);
+                    return this.$last.getTotalName(rows, index);
                 };
+                /*
+                field.totalValue = field.getTotalValue();
+                field.totalName = field.getTotalName();
+                */
             });
             //console.log('Fields.toStatic', 'cols', cols.length, 'rows', rows.length);
             return { cols: cols, rows: rows };
@@ -1103,9 +1119,6 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
                 });
             }
             this.toStatic();
-            if (this.after && angular.isFunction(this.after)) {
-                this.after(items);
-            }
         },
         setOrderBy: function () {
             // var defaults = [];
@@ -1221,8 +1234,8 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
                     to = field;
                 }
             });
-            // from = this.fields[this.cols.indexOf(from)];
-            // to = this.fields[this.cols.indexOf(to)];
+            // from = this.fields[this.fields.indexOf(from)];
+            // to = this.fields[this.fields.indexOf(to)];
             var fi = this.fields.indexOf(from);
             var field = this.fields[fi];
             this.fields.splice(fi, 1);
@@ -1236,7 +1249,10 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
             var filtered = table.fields.toStatic(table.items);
             table.rows = filtered.rows;
             table.cols = filtered.cols;
-            table.setOrderBy();
+            table.setOrderBy();            
+            if (this.after && angular.isFunction(this.after)) {
+                this.after(items);
+            }
         },
         toJson: function (data) {
             var table = this;
@@ -1264,7 +1280,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
                         item[index] = cell.getValue();
                         switch (col.type) {
                             case fieldTypes.PERCENT:
-                            case fieldTypes.INCREMENT:
+                            case fieldTypes.GAIN:
                                 item[index] /= 100;
                                 break;
                         }
@@ -1277,7 +1293,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'orderByFilter', func
                         item[index] = col.getTotalValue();
                         switch (col.type) {
                             case fieldTypes.PERCENT:
-                            case fieldTypes.INCREMENT:
+                            case fieldTypes.GAIN:
                                 item[index] /= 100;
                                 break;
                         }
@@ -1467,7 +1483,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 case colTypes.PERCENT:
                     format = '0.00%';
                     break;
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     format = '[Color 10]+0.00%;[Red]-0.00%;-';
                     break;
             }
@@ -1490,7 +1506,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 case colTypes.HOURS:
                 case colTypes.COSTS:
                 case colTypes.PERCENT:
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
@@ -1523,7 +1539,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 case colTypes.PERCENT:
                     cc.push('text-xs-right');
                     break;
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
@@ -1544,7 +1560,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
         getTextClass: function (item) {
             var cc = [];
             switch (this.type) {
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     var value = this.getters.raw(item);
                     if (angular.isNumber(value) && value < 0) {
                         cc.push('text-danger');
@@ -1599,7 +1615,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 case colTypes.PERCENT:
                     value = $filter('customNumber')(value, 2, ' %');
                     break;
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     value = angular.isNumber(value) ? (value > 0 ? '+' : '') + $filter('customNumber')(value, 2, ' %') : (value || '-');
                     break;
             }
@@ -1611,7 +1627,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
         },
         getValueTotal: function (filtered) {
             var value = 0, col = this;
-            if (col.compare && col.type === colTypes.INCREMENT) {
+            if (col.compare && col.type === colTypes.GAIN) {
                 var current = 0; // (col.getters.raw(item) || 0);
                 var previous = 0; // (this.getters.raw(item) || 0);                
                 angular.forEach(filtered, function (item) {
@@ -1667,7 +1683,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
                 case colTypes.HOURS:
                 case colTypes.COSTS:
                 case colTypes.PERCENT:
-                case colTypes.INCREMENT:
+                case colTypes.GAIN:
                     cc.push('text-xs-right');
                     break;
             }
@@ -1675,7 +1691,7 @@ module.factory('Column__', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'c
         },
         getCellTotal: function (rows, index) {
             var value = 0, col = this, cell;
-            if (col.compare && col.type === colTypes.INCREMENT) {
+            if (col.compare && col.type === colTypes.GAIN) {
                 var current = 0;
                 var previous = 0;         
                 angular.forEach(rows, function (row) {
@@ -1851,7 +1867,7 @@ module.factory('Columns__', ['$parse', 'Utils', 'Column', 'colTypes', function (
                             raw: col.value + 'Gain',
                             source: col.value,
                             key: col.key,
-                            type: colTypes.INCREMENT, // col.type, // 
+                            type: colTypes.GAIN, // col.type, // 
                             count: col.count,
                             compare: true,
                             dynamic: true,
@@ -2494,7 +2510,7 @@ module.factory('Table__', ['$parse', 'Columns', 'colTypes', 'orderByFilter', fun
                         item[index] = cell.getValue();
                         switch (col.type) {
                             case colTypes.PERCENT:
-                            case colTypes.INCREMENT:
+                            case colTypes.GAIN:
                                 item[index] /= 100;
                                 break;
                         }
@@ -2507,7 +2523,7 @@ module.factory('Table__', ['$parse', 'Columns', 'colTypes', 'orderByFilter', fun
                         item[index] = col.getTotalValue();
                         switch (col.type) {
                             case colTypes.PERCENT:
-                            case colTypes.INCREMENT:
+                            case colTypes.GAIN:
                                 item[index] /= 100;
                                 break;
                         }

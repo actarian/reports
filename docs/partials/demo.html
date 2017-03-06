@@ -65,20 +65,15 @@
 
 <!-- MAIN -->
 <main class="container-fluid">
-
     <div class="content report">
-
         <!-- INFO -->
         <div class="container-fluid maxw-lg text-xs-center">
             <div ng-include="tabs.description"></div>
         </div>
-
         <!-- LOADING -->
         <div class="loading" ng-if="state.isBusy"></div>
-
         <!-- TABLE -->
         <div class="repotable" ng-include="'partials/table'"></div>
-
         <!-- CHART -->
         <div class="container-fluid maxw-lg">
             <section class="container-fluid shadow section-bordered margin-bottom-xs-40" ng-if="table.has('chart')">
@@ -86,10 +81,8 @@
                 <div chart="chart" ng-include="'partials/report/chart'"></div>
             </section>
         </div>
-
         <!-- ERRORS -->
         <div class="container-fluid" ng-include="'partials/errors'" ng-if="!model.status"></div>
-
 </main>
 
 <!-- TABLE -->
