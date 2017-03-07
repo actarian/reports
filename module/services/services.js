@@ -438,7 +438,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
         },
         // STYLES
         getHeaderClass: function () {
-            return this.groupBy ? '' : 'text-xs-right';
+            return this.groupBy ? '' : 'text-right';
             /*
             var cc = [];
             angular.forEach(this, function (value, key) {
@@ -454,7 +454,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.COSTS:
                 case fieldTypes.PERCENT:
                 case fieldTypes.GAIN:
-                    cc.push('text-xs-right');
+                    cc.push('text-right');
                     break;
             }
             */
@@ -477,7 +477,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                     cc.push(key);
                 }
             });
-            field.groupBy ? null : cc.push('text-xs-right');
+            field.groupBy ? null : cc.push('text-right');
             angular.forEach(fieldTypes, function (value, key) {
                 if (value === field.type) {
                     cc.push('cell-' + key.toLowerCase());
@@ -493,13 +493,13 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.WEEKS:
                 case fieldTypes.HOURS:
                 case fieldTypes.COSTS:
-                    cc.push('text-xs-right');
+                    cc.push('text-right');
                     break;
                 case fieldTypes.PERCENT:
-                    cc.push('text-xs-right');
+                    cc.push('text-right');
                     break;
                 case fieldTypes.GAIN:
-                    cc.push('text-xs-right');
+                    cc.push('text-right');
                     break;
                     */
             }
@@ -529,7 +529,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
                 case fieldTypes.COSTS:
                 case fieldTypes.PERCENT:
                 case fieldTypes.GAIN:
-                    cc.push('text-xs-right');
+                    cc.push('text-right');
                     break;
             }
             return cc.join(' ');
@@ -1013,6 +1013,9 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                         field.aggregate = true;
                         field.color = 1;
                     } else {
+                        if (item.indexOf('http') === 0) {
+                            field.type = fieldTypes.LINK;
+                        }
                         field.groupBy = true;
                         field.hasSearch = true;
                     }
