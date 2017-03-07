@@ -99,37 +99,39 @@ module.factory('Animate', [function () {
     }
     Animate.prototype = {
         play: function () {
-            var _this = this;
+            var animate = this;
             function loop(time) {
-                _this.ticks++;
-                _this.callback(time, _this.ticks);
-                if (this.useTimeout) {
-                    _this.key = window.setTimeout(loop, 1000 / 60);
+                animate.ticks++;
+                animate.callback(time, animate.ticks);
+                if (animate.useTimeout) {
+                    animate.key = window.setTimeout(loop, 1000 / 60);
                 } else {
-                    _this.key = window.requestAnimationFrame(loop);
+                    animate.key = window.requestAnimationFrame(loop);
                 }
             }
-            if (!this.key) {
-                this.isPlaying = true;
+            if (!animate.key) {
+                animate.isPlaying = true;
                 loop();
             }
         },
         pause: function () {
-            if (this.key) {
-                if (this.useTimeout) {
-                    window.clearTimeout(this.key);
+            var animate = this;
+            if (animate.key) {
+                if (animate.useTimeout) {
+                    window.clearTimeout(animate.key);
                 } else {
-                    window.cancelAnimationFrame(this.key);
+                    window.cancelAnimationFrame(animate.key);
                 }
-                this.key = null;
-                this.isPlaying = false;
+                animate.key = null;
+                animate.isPlaying = false;
             }
         },
         playpause: function () {
-            if (this.key) {
-                this.pause();
+            var animate = this;
+            if (animate.key) {
+                animate.pause();
             } else {
-                this.play();
+                animate.play();
             }
         }
     }

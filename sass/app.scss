@@ -8,6 +8,7 @@
 @import "droppables";
 @import "navs";
 @import "tables";
+
 th {
     &[draggable-item] {
         height: 44px;
@@ -185,11 +186,13 @@ th {
     }
     td {
         border-bottom: 1px solid $accent;
+        /*
         span {
             max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
+        */
     }
     td,
     th {
@@ -282,6 +285,47 @@ th {
     [ng-click] {
         cursor: pointer;
     }
+    
+    $max-width: 460px;
+
+    td, th {
+        max-width: $max-width;
+        text-rendering: optimizeLegibility;
+        -moz-osx-font-smoothing: grayscale;
+    }
+    
+    th {
+        vertical-align: bottom;
+        color: black;
+        height: 90px;
+        .th-fixed {
+            position: absolute;
+        }
+    }
+
+    .cell-text {
+        & > span {
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: $max-width;
+        }
+    }
+
+    .cell-status, .cell-resource, .cell-date {
+        & > span {
+            text-align: center;
+            vertical-align: middle;
+            line-height: 10px;
+            font-weight: 400;
+            border-radius: 3px;
+            padding: 3px 5px 5px 5px;
+            background: #f8f8f8;            
+            color: black;
+            text-transform: uppercase;            
+        }
+    }
+
     @include media-breakpoint-down(md) {
         .inner {
             min-width: 320px;
@@ -299,4 +343,85 @@ th {
             // min-height: 600px;
         }
     }
+}
+
+
+.atable-dynamic {
+    thead.dummy {
+        display: none;
+    }
+}
+[sticky-table-header] {
+    position: relative;
+    // table-layout: fixed;
+    border-collapse: separate;
+    // width: 100%;
+    // margin-bottom: 0;
+    
+    .dummy {
+        display: table-header-group;
+        visibility: hidden;
+    }
+        
+    .real {
+
+        position: absolute;
+        z-index: 100;
+        top: 0;
+        left: 0;
+        background: white;
+        width: 100%;
+        
+        /*            
+        border: none;
+        th {
+            border: none;
+            &:first-child {
+                overflow-y: hidden;
+                &:before {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    z-index: 100;
+                    top: 0;
+                    height: 100%;
+                    width: 1000px;
+                    left: -1000px;
+                    background: #000a1b;
+                }
+            }
+            &:last-child {
+                overflow-y: hidden;
+                &:after {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    z-index: 100;
+                    top: 0;
+                    height: 100%;
+                    width: 1000px;
+                    right: -1000px;
+                    background: #000a1b;
+                }
+            }
+        }
+        */
+    }
+
+    &.sticked {
+        .real {
+            @include box-shadow(0 10px 20px -5px rgba(0, 0, 0, 0.15));
+        }
+    }
+    
+    /*
+    .msie & {
+        .dummy {
+            display: none;
+        }
+        .real {
+            visibility: visible;
+        }
+    }
+    */
 }

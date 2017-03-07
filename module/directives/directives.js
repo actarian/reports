@@ -1,7 +1,6 @@
 ﻿/* global angular, module */
 
 module.directive('draggableItem', ['$parse', '$timeout', 'Utils', 'Style', 'ElementRect', 'Droppables', function ($parse, $timeout, Utils, Style, ElementRect, Droppables) {
-
     return {
         require: 'ngModel',
         link: function (scope, element, attributes, model) {
@@ -188,6 +187,113 @@ module.directive('toggler', ['$document', '$parse', '$timeout', 'Utils', functio
             scope.$on('$destroy', function () {
                 removeListeners();
                 removeOutListeners();
+            });
+            addListeners();
+        }
+    };
+}]);
+
+module.directive('stickyTableHeader', ['$rootScope', '$window', '$timeout', 'Utils', 'Animate', 'Style', function ($rootScope, $window, $timeout, Utils, Animate, Style) {
+    return {
+        restrict: 'A',
+        link: function (scope, element, attributes, model) {
+            if (Utils.ua.mobile || Utils.ua.msie) {
+                element.addClass('sticky-disabled');
+                return;
+            }
+            var stickySelector = attributes.stickyTableHeader !== undefined ? attributes.stickyTableHeader : '.fixed';
+            var stickedClass = attributes.stickedClass !== undefined ? attributes.stickedClass : 'sticked';
+            // OPTIONS
+            var isSticked = false,
+                scrollDir = 0,
+                scrollDirCount = 0,
+                scrollPointY = 0,
+                scrollPointToY = 0,
+                stickyY = 0,
+                elementY = 0,
+                elementPreviousY = 0,
+                elementRect,
+                elementTop,
+                content,
+                contentStyle = new Style();
+            function draw() {
+                update();
+                content = content || angular.element(element[0].querySelector(stickySelector));
+                scrollPointY += (scrollPointToY - scrollPointY) / 4;
+                if (elementY < scrollPointY) {
+                    stickyY = Math.min(element[0].offsetHeight - 215, (elementY - scrollPointY) * -1);
+                    if (!isSticked) {
+                        isSticked = true;
+                        element.addClass(stickedClass);
+                    }
+                } else {
+                    stickyY = 0;
+                    if (isSticked) {
+                        isSticked = false;
+                        element.removeClass(stickedClass);
+                    }
+                }
+                contentStyle.transform('translate3d(0, ' + stickyY + 'px, 0)');
+                contentStyle.set(content[0]);
+                return;
+            }
+            var animate = new Animate(draw); // , Utils.ua.safari);            
+            function update() {
+                elementRect = element[0].getBoundingClientRect();
+                if (elementY === elementRect.top) {
+                    elementPreviousY = elementY;
+                    return;
+                }
+                elementY = elementRect.top;
+                if (elementY >= elementPreviousY) {
+                    scrollDirCount++;
+                } else {
+                    scrollDirCount--;
+                }
+                if (scrollDirCount > 3) {
+                    scrollDirCount = 0;
+                    // console.log('up')
+                    scrollDir = 1;
+                    scrollPointToY = 79;
+                } else if (scrollDirCount < -3) {
+                    scrollDirCount = 0;
+                    // console.log('down')                    
+                    scrollDir = 0;
+                    scrollPointToY = 0;
+                }
+                elementPreviousY = elementY;
+            }
+            function addListeners() {
+                animate.play();
+            }
+            function removeListeners() {
+                animate.pause();
+            }
+            scope.$on('$destroy', function () {
+                removeListeners();
+            });
+            var native = element[0];
+            scope.$watchCollection(function () {
+                var cols = Array.prototype.slice.call(native.querySelectorAll('.real th'), 0);
+                var dummies = Array.prototype.slice.call(native.querySelectorAll('.dummy th'), 0);
+                if (cols.length === dummies.length) {
+                    var watchlist = cols.concat(dummies);
+                    return watchlist.map(function (th) {
+                        return th.getBoundingClientRect().width;
+                    });
+                } else {
+                    return [];
+                }
+            }, function (widths) {
+                var cols = native.querySelectorAll('.real th');
+                var dummies = native.querySelectorAll('.dummy th');
+                if (cols.length === dummies.length) {
+                    angular.forEach(dummies, function (col, index) {
+                        var width = col.getBoundingClientRect().width;
+                        cols[index].style.width = width + 'px';
+                        cols[index].style.minWidth = width + 'px';
+                    });
+                }
             });
             addListeners();
         }

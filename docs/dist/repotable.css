@@ -999,11 +999,14 @@ th[droppable-item]:not([disabled]).dropping {
   .repotable th + th {
     padding-left: 1px; }
   .repotable td {
-    border-bottom: 1px solid #0002f3; }
-    .repotable td span {
-      max-width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis; }
+    border-bottom: 1px solid #0002f3;
+    /*
+        span {
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        */ }
   .repotable td.dynamic,
   .repotable th.dynamic {
     background: rgba(17, 17, 17, 0.05); }
@@ -1075,6 +1078,31 @@ th[droppable-item]:not([disabled]).dropping {
     background-color: #FFEB3B; }
   .repotable [ng-click] {
     cursor: pointer; }
+  .repotable td, .repotable th {
+    max-width: 460px;
+    text-rendering: optimizeLegibility;
+    -moz-osx-font-smoothing: grayscale; }
+  .repotable th {
+    vertical-align: bottom;
+    color: black;
+    height: 90px; }
+    .repotable th .th-fixed {
+      position: absolute; }
+  .repotable .cell-text > span {
+    text-transform: uppercase;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 460px; }
+  .repotable .cell-status > span, .repotable .cell-resource > span, .repotable .cell-date > span {
+    text-align: center;
+    vertical-align: middle;
+    line-height: 10px;
+    font-weight: 400;
+    border-radius: 3px;
+    padding: 3px 5px 5px 5px;
+    background: #f8f8f8;
+    color: black;
+    text-transform: uppercase; }
   @media (max-width: 991px) {
     .repotable .inner {
       min-width: 320px;
@@ -1087,3 +1115,66 @@ th[droppable-item]:not([disabled]).dropping {
   @media (min-width: 768px) {
     .repotable .inner {
       min-width: 640px; } }
+
+.atable-dynamic thead.dummy {
+  display: none; }
+
+[sticky-table-header] {
+  position: relative;
+  border-collapse: separate;
+  /*
+    .msie & {
+        .dummy {
+            display: none;
+        }
+        .real {
+            visibility: visible;
+        }
+    }
+    */ }
+  [sticky-table-header] .dummy {
+    display: table-header-group;
+    visibility: hidden; }
+  [sticky-table-header] .real {
+    position: absolute;
+    z-index: 100;
+    top: 0;
+    left: 0;
+    background: white;
+    width: 100%;
+    /*            
+        border: none;
+        th {
+            border: none;
+            &:first-child {
+                overflow-y: hidden;
+                &:before {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    z-index: 100;
+                    top: 0;
+                    height: 100%;
+                    width: 1000px;
+                    left: -1000px;
+                    background: #000a1b;
+                }
+            }
+            &:last-child {
+                overflow-y: hidden;
+                &:after {
+                    content: '';
+                    display: block;
+                    position: absolute;
+                    z-index: 100;
+                    top: 0;
+                    height: 100%;
+                    width: 1000px;
+                    right: -1000px;
+                    background: #000a1b;
+                }
+            }
+        }
+        */ }
+  [sticky-table-header].sticked .real {
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.15); }
