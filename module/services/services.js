@@ -1015,7 +1015,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                     } else {
                         if (item.indexOf('http') === 0) {
                             field.type = fieldTypes.LINK;
-                        }
+                        }                        
                         field.groupBy = true;
                         field.hasSearch = true;
                     }
@@ -1340,7 +1340,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
                 var item = [];
                 angular.forEach(cols, function (col, index) {
                     if (col.aggregate) {
-                        item[index] = col.getTotalValue();
+                        item[index] = col.getTotalValue(rows);
                         switch (col.type) {
                             case fieldTypes.PERCENT:
                             case fieldTypes.GAIN:
