@@ -854,267 +854,296 @@ th[droppable-item]:not([disabled]).dropping {
   transition-timing-function: ease-in-out;
   transform-style: preserve-3d; }
 
-.repotable {
-  /*
-    .fields {
-        @include flex();
-    }
-    */ }
-  .repotable section {
-    border: 4px solid #0002f3;
-    border-radius: 6px;
-    padding: 10px;
-    padding-bottom: 40px; }
-  .repotable h6 {
-    position: relative;
-    background: #0002f3;
-    color: #ffffff;
-    padding: 8px 10px;
-    margin: 0 -10px 10px;
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
-  .repotable .headline {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    z-index: 1;
-    padding: 5px 10px;
-    margin: -13px -10px 0 -10px;
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
-    .repotable .headline .form-control {
-      width: calc(100% - 50px);
-      background: transparent;
-      border-radius: 3px;
-      color: #fff;
-      padding: 0 4px;
-      line-height: 30px;
-      margin: 0;
-      border: none;
-      transition-property: all;
-      transition-duration: 250ms;
-      transition-delay: 0ms;
-      transition-timing-function: ease-in-out;
-      transform-style: preserve-3d; }
-      .repotable .headline .form-control::placeholder {
-        color: white; }
-      .repotable .headline .form-control:hover {
-        background: rgba(0, 0, 0, 0.2); }
-      .repotable .headline .form-control:focus {
-        background: rgba(0, 0, 0, 0.4); }
-  .repotable button:focus {
-    outline: 0;
-    border: none; }
-  .repotable .draggable {
-    background: white; }
-  .repotable .filter-btn {
-    width: 100%;
-    margin: 0;
-    border-radius: 0;
-    border: 0 solid #0002f3;
-    background: #0002f3;
+.repotable section {
+  border: 4px solid #0002f3;
+  border-radius: 6px;
+  padding: 10px 10px 0 10px; }
+
+.repotable h6 {
+  position: relative;
+  background: #0002f3;
+  color: #ffffff;
+  padding: 8px 10px;
+  margin: 0 -10px 10px;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
+
+.repotable .headline {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 1;
+  padding: 5px 10px;
+  margin: -13px -10px 0 -10px;
+  box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
+  .repotable .headline .form-control {
+    width: calc(100% - 50px);
+    background: transparent;
+    border-radius: 3px;
     color: #fff;
+    padding: 0 4px;
     line-height: 30px;
-    height: 30px;
-    vertical-align: middle;
-    font-size: 12px;
-    font-weight: 800;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer; }
-    .repotable .filter-btn span {
-      display: block;
-      position: relative;
-      transform: translateY(0);
-      transition-property: all;
-      transition-duration: 250ms;
-      transition-delay: 0ms;
-      transition-timing-function: ease-in-out;
-      transform-style: preserve-3d; }
-    .repotable .filter-btn:after {
-      content: '9';
-      font-family: 'Project';
-      font-size: 13px;
-      display: block;
-      position: absolute;
-      right: 0;
-      float: none;
-      border: none;
-      width: 100%;
-      height: 30px;
-      line-height: 30px;
-      background: transparent;
-      text-align: center;
-      top: 0;
-      left: 0;
-      margin: 0;
-      padding: 0;
-      transform: translateY(-100%);
-      transition-property: all;
-      transition-duration: 250ms;
-      transition-delay: 0ms;
-      transition-timing-function: ease-in-out;
-      transform-style: preserve-3d; }
-    .repotable .filter-btn:hover span {
-      transform: translateY(100%); }
-    .repotable .filter-btn:hover:after {
-      transform: translateY(0); }
-  .repotable .sort-btn {
-    width: 100%;
     margin: 0;
-    border-radius: 0;
-    border: 0 solid #eee;
-    background: #eee;
-    color: #111;
-    line-height: 20px;
-    height: 20px;
-    vertical-align: middle;
-    font-size: 11px;
-    font-weight: 800;
-    text-transform: uppercase;
-    padding: 0;
-    overflow: hidden;
-    position: relative;
-    cursor: pointer;
+    border: none;
     transition-property: all;
     transition-duration: 250ms;
     transition-delay: 0ms;
     transition-timing-function: ease-in-out;
     transform-style: preserve-3d; }
-    .repotable .sort-btn span {
-      display: block;
-      position: relative; }
-    .repotable .sort-btn:hover {
-      background: #bbb; }
-  .repotable .th-label {
+    .repotable .headline .form-control::placeholder {
+      color: white; }
+    .repotable .headline .form-control:hover {
+      background: rgba(0, 0, 0, 0.2); }
+    .repotable .headline .form-control:focus {
+      background: rgba(0, 0, 0, 0.4); }
+
+.repotable button:focus {
+  outline: 0;
+  border: none; }
+
+.repotable .draggable {
+  background: white; }
+
+.repotable .filter-btn {
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  border: 0 solid #0002f3;
+  background: #0002f3;
+  color: #fff;
+  line-height: 30px;
+  height: 30px;
+  vertical-align: middle;
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  text-transform: uppercase; }
+  .repotable .filter-btn span {
     display: block;
+    position: relative;
+    transform: translateY(0);
+    transition-property: all;
+    transition-duration: 250ms;
+    transition-delay: 0ms;
+    transition-timing-function: ease-in-out;
+    transform-style: preserve-3d; }
+  .repotable .filter-btn:after {
+    content: '9';
+    font-family: 'Project';
+    font-size: 13px;
+    display: block;
+    position: absolute;
+    right: 0;
+    float: none;
+    border: none;
     width: 100%;
     height: 30px;
     line-height: 30px;
-    padding: 0 8px; }
-  .repotable th {
-    vertical-align: bottom;
-    color: black;
-    padding: 10px 0 0 0; }
-  .repotable th + th {
-    padding-left: 1px; }
-  .repotable td {
-    border-bottom: 1px solid #0002f3;
-    /*
+    background: transparent;
+    text-align: center;
+    top: 0;
+    left: 0;
+    margin: 0;
+    padding: 0;
+    transform: translateY(-100%);
+    transition-property: all;
+    transition-duration: 250ms;
+    transition-delay: 0ms;
+    transition-timing-function: ease-in-out;
+    transform-style: preserve-3d; }
+  .repotable .filter-btn:hover span {
+    transform: translateY(100%); }
+  .repotable .filter-btn:hover:after {
+    transform: translateY(0); }
+
+.repotable .sort-btn {
+  width: 100%;
+  margin: 0;
+  border-radius: 0;
+  border: 0 solid #eee;
+  background: #eee;
+  color: #111;
+  line-height: 20px;
+  height: 20px;
+  vertical-align: middle;
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition-property: all;
+  transition-duration: 250ms;
+  transition-delay: 0ms;
+  transition-timing-function: ease-in-out;
+  transform-style: preserve-3d; }
+  .repotable .sort-btn span {
+    display: block;
+    position: relative; }
+  .repotable .sort-btn:hover {
+    background: #bbb; }
+
+.repotable .th-label {
+  display: block;
+  width: 100%;
+  height: 30px;
+  line-height: 30px;
+  padding: 0 8px; }
+
+.repotable th {
+  vertical-align: bottom;
+  color: black;
+  padding: 10px 0 0 0; }
+
+.repotable th + th {
+  padding-left: 1px; }
+
+.repotable td {
+  border-bottom: 1px solid #0002f3;
+  /*
         span {
             max-width: 200px;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         */ }
-  .repotable td.dynamic,
-  .repotable th.dynamic {
-    background: rgba(17, 17, 17, 0.05); }
-  .repotable td.aggregate,
-  .repotable th.aggregate {
-    text-align: right; }
-  .repotable .aggregate + .aggregate {
-    border-left: 1px solid rgba(17, 17, 17, 0.05); }
-  .repotable .filters {
-    background: white;
-    transition-property: all;
-    transition-duration: 250ms;
-    transition-delay: 0ms;
-    transition-timing-function: ease-in-out;
-    transform-style: preserve-3d;
-    /*
+
+.repotable td.dynamic,
+.repotable th.dynamic {
+  background: rgba(17, 17, 17, 0.05); }
+
+.repotable td.aggregate,
+.repotable th.aggregate {
+  text-align: right; }
+
+.repotable .aggregate + .aggregate {
+  border-left: 1px solid rgba(17, 17, 17, 0.05); }
+
+.repotable .filters {
+  background: white;
+  transition-property: all;
+  transition-duration: 250ms;
+  transition-delay: 0ms;
+  transition-timing-function: ease-in-out;
+  transform-style: preserve-3d;
+  /*
         &.opened {
             @include transform(translateY(0));
         }
         */ }
-    .repotable .filters .inner {
-      padding: 10px 0; }
-    .repotable .filters h4 {
-      margin: 20px 0 10px 0;
-      font-weight: 300; }
-  .repotable .field {
-    display: inline-block;
-    position: relative;
-    font-size: 11px;
-    font-weight: 500;
-    line-height: 23px;
-    margin: 0 2px 2px 0;
-    vertical-align: middle;
-    padding: 2px 6px 0 6px;
-    color: #111;
-    text-transform: capitalize;
-    transition-delay: 0s;
-    border-radius: 3px;
-    width: calc(20% - 2px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 7px;
-    background-color: #ddd;
-    border: 0 solid #ddd;
+  .repotable .filters .inner {
+    padding: 10px 0; }
+  .repotable .filters h4 {
+    margin: 20px 0 10px 0;
+    font-weight: 300; }
+
+.repotable .fields {
+  padding: 0; }
+
+.repotable .fields-absolute {
+  position: absolute;
+  width: 400px;
+  top: 92px;
+  white-space: normal;
+  background: white; }
+
+.repotable .field {
+  display: inline-block;
+  position: relative;
+  font-size: 11px;
+  font-weight: 500;
+  line-height: 23px;
+  margin: 0 2px 2px 0;
+  vertical-align: middle;
+  padding: 2px 6px 0 6px;
+  color: #111;
+  text-transform: capitalize;
+  transition-delay: 0s;
+  border-radius: 3px;
+  width: calc(20% - 2px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 7px;
+  background-color: #ddd;
+  white-space: nowrap;
+  border: 0 solid #ddd;
+  transition-property: all;
+  transition-duration: 250ms;
+  transition-delay: 0ms;
+  transition-timing-function: ease-in-out;
+  transform-style: preserve-3d; }
+  .repotable .field > i {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    line-height: 14px;
+    transform: translateX(20px) translateY(-50%);
     transition-property: all;
     transition-duration: 250ms;
     transition-delay: 0ms;
     transition-timing-function: ease-in-out;
     transform-style: preserve-3d; }
-    .repotable .field > i {
-      position: absolute;
-      top: 50%;
-      right: 6px;
-      line-height: 14px;
-      transform: translateX(20px) translateY(-50%);
-      transition-property: all;
-      transition-duration: 250ms;
-      transition-delay: 0ms;
-      transition-timing-function: ease-in-out;
-      transform-style: preserve-3d; }
-    .repotable .field:hover:not(:active), .repotable .field.active {
-      background-color: #FFEB3B;
-      border-color: #FFEB3B; }
-    .repotable .field.active > i {
-      transform: translateX(0) translateY(-50%); }
-  .repotable .text-underline {
-    text-decoration: underline; }
-  .repotable .text-highlight {
-    background-color: #FFEB3B; }
-  .repotable [ng-click] {
-    cursor: pointer; }
-  .repotable td, .repotable th {
-    max-width: 460px;
-    text-rendering: optimizeLegibility;
-    -moz-osx-font-smoothing: grayscale; }
-  .repotable th {
-    vertical-align: bottom;
-    color: black;
-    height: 90px; }
-    .repotable th .th-fixed {
-      position: absolute; }
-  .repotable .cell-text > span {
-    text-transform: uppercase;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 460px; }
-  .repotable .cell-status > span, .repotable .cell-resource > span, .repotable .cell-date > span {
-    text-align: center;
-    vertical-align: middle;
-    line-height: 10px;
-    font-weight: 400;
-    border-radius: 3px;
-    padding: 3px 5px 5px 5px;
-    background: #f8f8f8;
-    color: black;
-    text-transform: uppercase; }
-  @media (max-width: 991px) {
-    .repotable .inner {
-      min-width: 320px;
-      /* 
+  .repotable .field:hover:not(:active), .repotable .field.active {
+    background-color: #FFEB3B;
+    border-color: #FFEB3B; }
+  .repotable .field.active > i {
+    transform: translateX(0) translateY(-50%); }
+
+.repotable .text-underline {
+  text-decoration: underline; }
+
+.repotable .text-highlight {
+  background-color: #FFEB3B; }
+
+.repotable [ng-click] {
+  cursor: pointer; }
+
+.repotable td, .repotable th {
+  max-width: 460px;
+  text-rendering: optimizeLegibility;
+  -moz-osx-font-smoothing: grayscale; }
+
+.repotable th {
+  vertical-align: bottom;
+  color: black;
+  height: 90px; }
+  .repotable th .th-fixed {
+    position: absolute; }
+
+.repotable .cell-text > span {
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 460px; }
+
+.repotable .cell-status > span, .repotable .cell-resource > span, .repotable .cell-date > span {
+  text-align: center;
+  vertical-align: middle;
+  line-height: 10px;
+  font-weight: 400;
+  border-radius: 3px;
+  padding: 3px 5px 5px 5px;
+  background: #f8f8f8;
+  color: black;
+  text-transform: uppercase; }
+
+@media (max-width: 991px) {
+  .repotable .inner {
+    min-width: 320px;
+    /* 
             max-height: calc(100vh - 300px);
             overflow: hidden;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
             */ } }
-  @media (min-width: 768px) {
-    .repotable .inner {
-      min-width: 640px; } }
+
+@media (min-width: 768px) {
+  .repotable .inner {
+    min-width: 640px; } }
 
 .atable-dynamic thead.dummy {
   display: none; }

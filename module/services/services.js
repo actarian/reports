@@ -77,7 +77,7 @@ module.factory('Filters', [function () {
     return Filters;
 }]);
 
-module.factory('Order', [function () {
+module.factory('Order', ['repoLocale', function (repoLocale) {
     function Order() {
         this.set(0);
     }
@@ -85,19 +85,19 @@ module.factory('Order', [function () {
         set: function (sort) {
             switch (sort) {
                 case 1:
-                    this.name = 'Asc';
+                    this.name = repoLocale.asc;
                     this.sort = 1;
                     this.asc = true;
                     this.desc = false;
                     break;
                 case -1:
-                    this.name = 'Desc';
+                    this.name = repoLocale.desc;
                     this.sort = -1;
                     this.asc = false;
                     this.desc = true;
                     break;
                 default:
-                    this.name = 'Ordina';
+                    this.name = repoLocale.order;
                     this.sort = 0;
                     this.asc = false;
                     this.desc = false;
@@ -1030,7 +1030,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
     return Fields;
 }]);
 
-module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', function ($parse, Fields, fieldTypes, fieldTotalTypes) {
+module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'repoLocale', function ($parse, Fields, fieldTypes, fieldTotalTypes, repoLocale) {
     var MAX_FIELDS_ORDERED = 4;
     function Table(fields, options) {
         this.fields = new Fields(fields).expand(options);
@@ -1040,12 +1040,12 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
                 active: field.active,
             };
         });
-        this.colGroups = [{
-            name: 'GroupBy',
+        this.groupables = [{
+            name: repoLocale.groupBy,
             items: this.fields.getGroups()
         }, ];
-        this.valGroups = [{
-            name: 'Aggregate',
+        this.aggregables = [{
+            name: repoLocale.aggregate,
             items: this.fields.getAggregates()
         }, ];
         this.excludes = [];
@@ -1056,6 +1056,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
         this.items = [];
         this.rows = [];
         this.cols = [];
+        this.locale = repoLocale;
     }
     Table.prototype = {
         setDatas: function (datas, compares) {
@@ -1076,42 +1077,39 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
         setOptions: function (options) {
             var table = this;
             this.options = [{
-                name: 'Columns',
-                template: 'partials/report/filters/columns',
+                name: repoLocale.columns,
                 icon: 'icon-columns',
-                groups: this.colGroups,
+                groups: this.groupables,
                 toggle: function (item) {
                     return table.toggleField(item);
                 },
                 active: true,
             }, {
-                name: 'Values',
-                template: 'partials/report/filters/values',
+                name: repoLocale.values,
                 icon: 'icon-values',
-                groups: this.valGroups,
+                groups: this.aggregables,
                 toggle: function (item) {
                     return table.toggleField(item);
                 },
             }, {
-                name: 'Options',
-                template: 'partials/report/filters/flags',
+                name: repoLocale.options,
                 icon: 'icon-options',
-                rows: [{
-                    name: 'Exclude',
-                    items: this.exclude,
+                groups: [{
+                    name: repoLocale.exclude,
+                    items: this.excludes,
                     toggle: function (item) {
                         return table.exclude(item);
                     },
                 }, {
-                    name: 'Include',
+                    name: repoLocale.include,
                     items: this.includes,
                     toggle: function (item) {
                         return table.include(item);
                     },
                 }, {
-                    name: 'Flags',
+                    name: repoLocale.flags,
                     items: [{
-                        name: 'Percentuali di incidenza',
+                        name: repoLocale.incidence,
                         key: 'dynamic',
                     }],
                     toggle: function (item) {
@@ -1202,8 +1200,17 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
             item.active = !item.active;
             this.update();
         },
-        has: function (mode) {
-            return (this.fields ? this.fields.show[mode] : null);
+        active: function(item) {
+            if (this.fields && this.fields.indexOf(item) !== -1) {
+                return item.isActive();
+            } else if (this.excludes.indexOf(item) !== -1 || this.includes.indexOf(item) !== -1) {
+                return item.active;
+            } else {
+                return this.has(item.key);
+            }
+        },
+        has: function (key) {
+            return (this.fields ? this.fields.show[key] : null);
         },
         resetFilters: function () {
             var table = this;
@@ -1376,6 +1383,25 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', fu
     Table.totalTypes = fieldTotalTypes;
     return Table;
 }]);
+
+module.value('repoLocale', {
+    report: 'Report',
+    groupBy: 'GroupBy',
+    aggregate: 'Aggregate',
+    columns: 'Columns',
+    values: 'Values',
+    options: 'Options',
+    exclude: 'Exclude',
+    include: 'Include',
+    flags: 'Flags',
+    incidence: 'Incidence',
+    filter: 'Filter',
+    order: 'Order',
+    desc: 'Desc',
+    asc: 'Asc',
+    reset: 'Reset',
+    no_results: 'no results',
+});
 
 module.service('Droppables', ['ElementRect', function(ElementRect) {
     this.natives = [];

@@ -45,8 +45,7 @@ th {
     section {
         border: 4px solid $accent;
         border-radius: 6px;
-        padding: 10px;
-        padding-bottom: 40px;
+        padding: 10px 10px 0 10px;
         // overflow: hidden;
     }
     h6 {
@@ -107,6 +106,7 @@ th {
         overflow: hidden;
         position: relative;
         cursor: pointer;
+        text-transform: uppercase;
         span {
             display: block;
             position: relative;
@@ -232,11 +232,17 @@ th {
             font-weight: 300;
         }
     }
-    /*
     .fields {
-        @include flex();
+        padding: 0;
+        // @include flex();
     }
-    */
+    .fields-absolute {
+        position: absolute;
+        width: 400px;
+        top: 92px;
+        white-space: normal;
+        background: white;
+    }
     .field {
         display: inline-block;
         position: relative;
@@ -255,6 +261,7 @@ th {
         text-overflow: ellipsis;
         padding-right: 7px;
         background-color: #ddd;
+        white-space: nowrap;
         border: 0 solid #ddd;
         &>i {
             position: absolute;
