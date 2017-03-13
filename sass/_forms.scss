@@ -470,21 +470,6 @@ select {
     }
 }
 
-/*
-::-webkit-input-placeholder {
-  color: pink;
-}
-::-moz-placeholder {
-  color: pink;
-}
-:-ms-input-placeholder {
-  color: pink;
-}
-:-moz-placeholder {
-  color: pink;
-}
-*/
-
 input[type="date"], input[type="datetime"], input[type="datetime-local"] {
     &::-webkit-input-placeholder {
         visibility: hidden !important;

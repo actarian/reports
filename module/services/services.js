@@ -1,5 +1,7 @@
 ﻿/* global angular, module */
 
+// REPORTS
+
 module.factory('Filters', [function () {
     function Filters() {
         this.keys = {};
@@ -23,14 +25,26 @@ module.factory('Filters', [function () {
             this.flags = {};
             this.search = [];
         },
+        clear: function () {
+            var filters = this;
+            angular.forEach(this.values, function (item) {
+                filters.off(item);
+            });
+        },
+        on: function (item) {
+            item.active = this.flags[item.id] = true;
+            this.search.push(item.id);
+        },
+        off: function (item) {
+            item.active = this.flags[item.id] = false;
+            var index = this.search.indexOf(item.id);
+            this.search.splice(index, 1);
+        },
         toggle: function (item) {
             if (this.active(item.id)) {
-                item.active = this.flags[item.id] = false;
-                var index = this.search.indexOf(item.id);
-                this.search.splice(index, 1);
+                this.off(item);
             } else {
-                item.active = this.flags[item.id] = true;
-                this.search.push(item.id);
+                this.on(item);
             }
         },
         add: function (item) {
@@ -201,7 +215,7 @@ module.factory('Field', ['$parse', '$filter', 'Utils', 'Filters', 'Order', 'fiel
         addValue: function (item) {
             var key = this.getters.key(item);
             if (!this.filters.has(key)) {
-                var value = this.getters.raw(item);
+                var value = this.formatValue(this.getters.raw(item));
                 var active = this.filters.flags[key];
                 this.filters.add({
                     id: key,
@@ -657,7 +671,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                     if (options.compare) {
                         var fieldPrevious = new Field({
                             $id: array.length + 1,
-                            name: 'anno precedente',
+                            name: field.name + ' anno precedente',
                             value: function (item) {
                                 return this.getters.raw(item);
                             },
@@ -1015,7 +1029,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                     } else {
                         if (item.indexOf('http') === 0) {
                             field.type = fieldTypes.LINK;
-                        }                        
+                        }
                         field.groupBy = true;
                         field.hasSearch = true;
                     }
@@ -1030,7 +1044,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
     return Fields;
 }]);
 
-module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'repoLocale', function ($parse, Fields, fieldTypes, fieldTotalTypes, repoLocale) {
+module.factory('Table', ['$parse', '$filter', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'repoLocale', function ($parse, $filter, Fields, fieldTypes, fieldTotalTypes, repoLocale) {
     var MAX_FIELDS_ORDERED = 4;
     function Table(fields, options) {
         this.fields = new Fields(fields).expand(options);
@@ -1200,7 +1214,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
             item.active = !item.active;
             this.update();
         },
-        active: function(item) {
+        active: function (item) {
             if (this.fields && this.fields.indexOf(item) !== -1) {
                 return item.isActive();
             } else if (this.excludes.indexOf(item) !== -1 || this.includes.indexOf(item) !== -1) {
@@ -1228,26 +1242,30 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
             // table.fields.radios.workloads = 'supplier.name'; //??? default radios ???
             table.update();
         },
+        hasRow: function (row) {
+            var table = this, cell;
+            var has = true;
+            angular.forEach(table.cols, function (col, index) {
+                cell = row.cols[index];
+                cell.matches = null;
+                has = has && col.filters.filter(cell);
+            });
+            // SPOSTARE RICERCA SEARCH OBJECT
+            if (has && table.search && table.search.length) {
+                var match = false;
+                angular.forEach(row.cols, function (cell) {
+                    cell.matches = new RegExp(table.search, 'gim').exec(cell.name);
+                    match = match || (cell.matches !== null);
+                });
+                has = has && match;
+            }
+            return has;
+        },
         doFilterStatic: function (cols) {
             var table = this;
             var fields = table.fields, cell;
             return function (row) {
-                var has = true;
-                angular.forEach(table.cols, function (col, index) {
-                    cell = row.cols[index];
-                    cell.matches = null;
-                    has = has && col.filters.filter(cell);
-                });
-                // SPOSTARE RICERCA SEARCH OBJECT
-                if (has && table.search && table.search.length) {
-                    var match = false;
-                    angular.forEach(row.cols, function (cell) {
-                        cell.matches = new RegExp(table.search, 'gim').exec(cell.name);
-                        match = match || (cell.matches !== null);
-                    });
-                    has = has && match;
-                }
-                return has;
+                return table.hasRow(row);
             };
         },
         toggle: function (mode) {
@@ -1323,6 +1341,7 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
             if (table.rows.length) {
                 var cols = table.cols;
                 var rows = table.rows;
+                var filteredRows = [];
                 angular.forEach(cols, function (col, index) {
                     json.columns.push({
                         index: index,
@@ -1331,6 +1350,12 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
                     });
                 });
                 angular.forEach(rows, function (row, index) {
+                    if (table.hasRow(row)) {
+                        filteredRows.push(row);
+                    }
+                });
+                filteredRows = $filter('orderBy')(filteredRows, table.filteredOrderBy);
+                angular.forEach(filteredRows, function (row, index) {
                     var item = [];
                     angular.forEach(cols, function (col, index) {
                         var cell = row.cols[index];
@@ -1343,11 +1368,11 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
                         }
                     });
                     json.rows.push(item);
-                });
+                });                
                 var item = [];
                 angular.forEach(cols, function (col, index) {
                     if (col.aggregate) {
-                        item[index] = col.getTotalValue(rows);
+                        item[index] = col.getTotalValue(filteredRows);
                         switch (col.type) {
                             case fieldTypes.PERCENT:
                             case fieldTypes.GAIN:
@@ -1383,6 +1408,8 @@ module.factory('Table', ['$parse', 'Fields', 'fieldTypes', 'fieldTotalTypes', 'r
     Table.totalTypes = fieldTotalTypes;
     return Table;
 }]);
+
+// REPORTS
 
 module.value('repoLocale', {
     report: 'Report',

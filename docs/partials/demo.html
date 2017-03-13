@@ -124,11 +124,6 @@
                             <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.$id" target="#nav-col-{{col.$id}}">
                                 <span ng-bind="table.locale.filter"></span>
                             </button>
-                            <ul id="nav-col-{{col.$id}}" class="fields fields-absolute" ng-if="table.dropdown == col.$id">
-                                <li ng-repeat="value in col.filters.values" class="field" ng-class="{ active: value.active }" ng-click="stop($event) && col.filters.toggle(value)">
-                                    <span ng-bind="value.name"></span> <i class="icon-check-mark"></i>
-                                </li>
-                            </ul>
                             <!--
                             <ul id="nav-col-{{col.$id}}" class="nav nav-dropdown" ng-if="table.dropdown == col.$id">
                                 <li class="nav-item" ng-repeat="value in col.filters.values" ng-click="stop($event) && col.filters.toggle(value)">
@@ -173,6 +168,11 @@
             </tr>
         </tbody>
     </table>
+    <ul ng-repeat="col in table.cols track by $index" ng-if="table.dropdown == col.$id" class="fields fields-filters" id="nav-col-{{col.$id}}">
+        <li ng-repeat="value in col.filters.values" class="field" ng-class="{ active: value.active }" ng-click="stop($event) && col.filters.toggle(value)">
+            <span ng-bind="value.name"></span> <i class="icon-check-mark"></i>
+        </li>
+    </ul>
 </script>
 
 <!-- FILTERS -->
