@@ -1,0 +1,61 @@
+
+body {
+    font-family: 'Poppins', sans-serif;
+    padding-bottom: 20px;
+}
+header {
+    padding: 20px 0;
+    background: #223;
+    color: white;
+}
+header .form-group {
+    margin-bottom: 0;
+}
+header .form-control {
+    background: transparent;
+}
+header .btn-secondary {
+    background: rgba(255,255,255,.2);
+    color: white;
+    border: none;
+}
+header .btn-secondary:hover, 
+header .btn-secondary:active, 
+header .btn-secondary:focus {
+    background: #0002f3;
+    color: white;
+    border: none;
+}
+.jumbo {
+    height: 60vh;
+    padding: 20px 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#cccccc+0,f0f0f0+100 */
+    background: rgb(204,204,204); /* Old browsers */
+    background: -moz-linear-gradient(-45deg,  rgba(204,204,204,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(-45deg,  rgba(204,204,204,1) 0%,rgba(240,240,240,1) 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(135deg,  rgba(204,204,204,1) 0%,rgba(240,240,240,1) 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#cccccc', endColorstr='#f0f0f0',GradientType=1 ); /* IE6-9 fallback on horizontal gradient */
+}
+.sub-header {
+    display: table;
+    width: 100%;
+    height: calc(40vh - 77px);
+    background: #445;
+    color: white;
+}
+.sub-header .inner {
+    display: table-cell;
+    text-align: center;
+    vertical-align: middle;
+}
+.sub-header h1 {
+    font-size: 18px;
+    font-weight: 300;
+    text-transform: uppercase;
+    letter-spacing: 10px;
+    padding-left: 10px;
+    color: rgba(255,255,255,1);
+    margin: 10px 0;
+}

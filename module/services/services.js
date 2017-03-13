@@ -1027,7 +1027,7 @@ module.factory('Fields', ['$parse', 'Utils', 'Field', 'fieldTypes', function ($p
                         field.aggregate = true;
                         field.color = 1;
                     } else {
-                        if (item.indexOf('http') === 0) {
+                        if (angular.isString(item) && item.indexOf('http') === 0) {
                             field.type = fieldTypes.LINK;
                         }
                         field.groupBy = true;
