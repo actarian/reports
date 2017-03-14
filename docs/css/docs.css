@@ -31,6 +31,7 @@ header .btn-secondary:focus {
     padding: 20px 0;
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch; /* lets it scroll lazy */
     /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#cccccc+0,f0f0f0+100 */
     background: rgb(204,204,204); /* Old browsers */
     background: -moz-linear-gradient(-45deg,  rgba(204,204,204,1) 0%, rgba(240,240,240,1) 100%); /* FF3.6-15 */
