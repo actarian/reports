@@ -300,13 +300,34 @@ module.directive('stickyTableHeader', ['$rootScope', '$window', '$timeout', 'Uti
     };
 }]);
 
-module.directive('repotable', [function() {
+module.directive('repotable', ['Table', function(Table) {
     return {
-        restrict: 'EA',
+        restrict: 'A',
         replace: true,
         templateUrl: 'repotable/partials/repotable',
+        scope: {
+            options: '=repotable',
+        },
         link: function (scope, element, attributes, model) {
-            console.log('repotable');
+            console.log('repotable'); 
+            var table;
+            // table = scope.table = new Table(scope.options);
+            scope.$watch('options.items', function (datas) {
+                table = $scope.table = Table.fromDatas(datas);
+                table.name = scope.options.name;
+            });
+            scope.$on('onDropItem', function (scope, event) {
+                table.swap(event.from.model, event.to.model);
+            });
+            scope.$on('onDropOut', function (scope, event) {
+                // console.log('NegotiationReportCtrl.onDropOut', event.model, event.from, event.to, event.target);
+            });            
+            /*
+            scope.stop = function ($event) {
+                $event.stopImmediatePropagation();
+                return true;
+            };
+            */
         }
     };
 }]);

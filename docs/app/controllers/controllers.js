@@ -36,6 +36,26 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
     }];
     paths.custom = { name:'Report', uri: null };
 
+    var repotable = $scope.options = {
+        name: 'Repotable',
+    }
+
+    var load = $scope.load = function(path) {
+        if (state.busy()) {
+            var uri = path.uri;
+            paths.current = path;
+            $http.get(uri).then(function success(response) {
+                repotable.items = response.data;
+                repotable.name = paths.current.name;
+                state.ready();
+            }, function (response) {
+                state.error(response);
+            });
+        }
+    }
+    load(paths[0]);
+    
+    /*
     var table;
     var load = $scope.load = function(path) {
         if (state.busy()) {
@@ -64,6 +84,7 @@ app.controller('DemoCtrl', ['$scope', '$filter', '$http', 'State', 'Table', 'col
         $event.stopImmediatePropagation();
         return true;
     };
+    */
 
 /*
     
