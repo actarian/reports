@@ -378,7 +378,7 @@ module.directive('repotable', ['Table', function(Table) {
             var table;
             // table = scope.table = new Table(scope.options);
             scope.$watch('options.items', function (datas) {
-                table = $scope.table = Table.fromDatas(datas);
+                table = scope.table = Table.fromDatas(datas);
                 table.name = scope.options.name;
             });
             scope.$on('onDropItem', function (scope, event) {
