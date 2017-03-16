@@ -16,6 +16,7 @@ var gulp = require('gulp'),
     coffee = require('gulp-coffee'),
     concat = require('gulp-concat'),
     cssmin = require('gulp-cssmin'),
+    html2js = require('gulp-html2js'),
     livereload = require('gulp-livereload'),
     rename = require('gulp-rename'),
     sass = require('gulp-sass'),
@@ -60,6 +61,49 @@ gulp.task('sass:watch', function () {
 });
 gulp.task('sass', ['sass:compile', 'sass:watch']);
 
+/*******************
+ *** JS TEMPLATE *** 
+ *******************/
+var templates = './module/templates/**/*.html';
+gulp.task('templates:bundle:0', function () {
+    return gulp.src(templates, {
+            base: '.'
+        })
+        .pipe(rename({
+            dirname: 'repotable/partials/', // flatten directory
+            extname: '',
+        }))
+        .pipe(html2js('templates.js', {
+            adapter: 'angular',
+            base: '.',
+            name: 'repotable',
+            // fileHeaderString: '/* global angular: false */',
+            indentString: '\t',
+            // quoteChar: '\'',
+            singleModule: true,
+            useStrict: true,
+        }))
+        .pipe(gulp.dest('./module/templates')) // save .js
+        /*
+        .pipe(sourcemaps.init())
+        .pipe(uglify()) // { preserveComments: 'license' }
+        .pipe(rename({
+            extname: '.min.js'
+        }))
+        .pipe(sourcemaps.write('.')) // save .map
+        .pipe(gulp.dest('.')); // save .min.js
+        */
+});
+gulp.task('templates:bundles', ['templates:bundle:0'], function (done) {
+    done();
+});
+gulp.task('templates:watch', function () {
+    return gulp.watch(templates, ['templates:bundles'])
+        .on('change', function (e) {
+            console.log(e.type + ' watcher did change path ' + e.path);
+        });
+});
+
 
 /******************
  *** JS BUNDLES ***
@@ -73,6 +117,7 @@ var jsbundle = [
     './module/filters/filters.js',
     './module/models/models.js',
     './module/services/services.js',
+    './module/templates/templates.js',
     './module/e.js',
 ];
 gulp.task('js:bundle:0', function () {
@@ -132,7 +177,7 @@ gulp.task('webserver', function () {
 /*-------------------------------------------------
 COMPILE
 -------------------------------------------------*/
-gulp.task('compile', ['sass:compile', 'js:bundles'], function (done) {
+gulp.task('compile', ['sass:compile', 'templates:bundles', 'js:bundles'], function (done) {
     done();
 });
 
@@ -149,7 +194,7 @@ gulp.task('watch', function () {
     return watcher;
 });
 */
-gulp.task('watch', ['sass:watch', 'js:watch'], function (done) {
+gulp.task('watch', ['sass:watch', 'templates:watch', 'js:watch'], function (done) {
     done();
 });
 

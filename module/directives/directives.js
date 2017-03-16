@@ -299,3 +299,14 @@ module.directive('stickyTableHeader', ['$rootScope', '$window', '$timeout', 'Uti
         }
     };
 }]);
+
+module.directive('repotable', [function() {
+    return {
+        restrict: 'EA',
+        replace: true,
+        templateUrl: 'repotable/partials/repotable',
+        link: function (scope, element, attributes, model) {
+            console.log('repotable');
+        }
+    };
+}]);

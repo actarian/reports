@@ -1,0 +1,55 @@
+<div>
+    <table class="atable-responsive atable-responsive-default atable-dynamic" style="table-layout: auto; width: 100%;">
+        <!-- HEAD -->
+        <thead>
+            <tr>
+                <th class="{{col.headerClass}}" ng-repeat="col in table.cols track by $index" ng-model="col" droppable-item=".draggable" droppable-index="$index" draggable-item=".draggable" draggable-if="col.groupBy" droppable-if="col.groupBy" ng-disabled="!col.groupBy">
+                    <div class="draggable">
+                        <span class="th-label" title="{{col.colName}}" ng-bind="col.colName"></span>
+                        <div ng-if="col.filters.values.length > 1">
+                            <button class="filter-btn dropdown-toggle" toggler="table.dropdown" value="col.$id" target="#nav-col-{{col.$id}}">
+                                <span ng-bind="table.locale.filter"></span>
+                            </button>
+                        </div>
+                        <button class="sort-btn" ng-click="table.toggleOrder(col)" ng-title="col.order.name">
+                            <span><span ng-bind="col.order.name"></span> <i ng-class="{ 'icon-sort-asc' : col.order.asc, 'icon-sort-desc' : col.order.desc }"></i></span>
+                        </button>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <!-- ROWS -->
+        <tbody ng-repeat="row in table.rows | filter:table.doFilterStatic(table.cols) | orderBy:table.filteredOrderBy | limitTo:(tabs.opened ? 3 : null) as filteredRows track by $index" ng-if="!source.state.isBusy && table.rows.length">
+            <tr>
+                <td ng-repeat="cell in row.cols track by $index" style="position: relative;" link-to="cell.link" class="{{cell.cellClass}} {{cell.columnClass}}">
+                    <label ng-bind="cell.colName"></label>
+                    <span class="{{cell.textClass}}" ng-class="{ 'text-underline': cell.pop, 'text-highlight': cell.matches.length }" ng-bind="cell.getName()" pop="cell.pop"></span>
+                </td>
+            </tr>
+        </tbody>
+        <!-- FOOT -->
+        <tfoot ng-if="!source.state.isBusy && filteredRows.length">
+            <tr class="row-recap">
+                <td class="{{col.headerClass}}" ng-repeat="col in table.cols track by $index">
+                    <label ng-if="col.aggregate || col.compare" ng-bind="col.colName"></label>
+                    <span ng-if="col.aggregate || col.compare" class="tag {{col.textClass}} {{col.totalClass}}" ng-bind="col.getTotalName(filteredRows)"></span>
+                </td>
+            </tr>
+        </tfoot>
+        <!-- NO RESULTS -->
+        <tbody ng-if="!source.state.isBusy && !filteredRows.length">
+            <tr>
+                <td class="text-xs-center" colspan="{{table.fields.getCount()}}">
+                    <p>
+                        <span ng-bind="table.locale.no_results"></span>
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <ul ng-repeat="col in table.cols track by $index" ng-if="table.dropdown == col.$id" class="fields fields-filters" id="nav-col-{{col.$id}}">
+        <li ng-repeat="value in col.filters.values" class="field" ng-class="{ active: value.active }" ng-click="stop($event) && col.filters.toggle(value)">
+            <span ng-bind="value.name"></span> <i class="icon-check-mark"></i>
+        </li>
+    </ul>
+</div>

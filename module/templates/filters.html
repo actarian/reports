@@ -1,0 +1,17 @@
+<div>
+    <span class="float-right" ng-click="table.resetFilters()" ng-bind="table.locale.reset"></span>
+    <!-- OPTIONS -->
+    <div class="option" ng-repeat="option in table.options track by $index" ng-class="{ active: !option.closed }">
+        <h6 ng-click="option.closed = !option.closed"><i ng-class="option.icon"></i> <span ng-bind="option.name"></span></h6>
+        <!-- GROUP -->
+        <div class="group" ng-repeat="group in option.groups track by $index" ng-if="group.items.length && !option.closed">
+            <h4 ng-bind="group.name"></h4>
+            <ul class="fields">
+                <!-- ITEMS -->
+                <li class="field" ng-class="{ 'active': table.active(item) }" ng-repeat="item in group.items track by $index" ng-click="group.toggle ? group.toggle(item) : option.toggle(item)">
+                    <span ng-bind="item.name"></span> <i class="icon-check-mark"></i>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>

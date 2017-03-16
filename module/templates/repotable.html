@@ -1,0 +1,24 @@
+<div class="repotable">
+    <div style="display: flex;">
+        <section class="container-fluid shadow section-bordered margin-bottom-xs-40">
+            <h6 class="headline foreground light-60">
+                <i ng-class="{ 'icon-search': !table.search, 'icon-close': table.search }" ng-click="table.search = null"></i>
+                <input type="text" class="form-control" placeholder="{{table.name}}" ng-model="table.search" ng-model-options="{ allowInvalid: true, debounce: 250 }">
+                <i class="icon-settings float-right" ng-click="tabs.opened = !tabs.opened"></i>
+            </h6>
+            <div class="inner" ng-if="table.has('table')">
+                <div ng-include="'repotable/partials/table'"></div>
+            </div>
+            <!-- FILTERS -->
+            <div class="filters" ng-class="{ opened: tabs.opened }" ng-include="'repotable/partials/filters'" ng-if="tabs.opened"></div>
+            <!-- ERRORS -->
+            <div ng-include="'partials/errors'"></div>
+            <!-- EXCEL -->
+            <div class="row" ng-if="filtered.length">
+                <div class="col-lg-12 text-xs-right">
+                    <button type="button" ng-click="excel()" class="btn btn-sm btn-outline-primary btn-icon btn-block-md-down">Esporta in Excel <i class="icon-print"></i></button>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>

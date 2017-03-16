@@ -101,4 +101,230 @@
     <!-- Place this tag in your head or just before your close body tag. -->
     <script async defer src="https://buttons.github.io/buttons.js"></script>
 </body>
+
+
+
+
+
+<!--
+<div role="main">
+    <header class="bs-header text-center" id="overview">
+        <div class="container">
+            <h1>Repotable</h1>
+            <p>Reporting table component written in pure <a href="http://angularjs.org">AngularJS</a> by <a href="https://github.com/actarian">actarian</a></p>
+            <p>
+                <a class="btn btn-outline-inverse btn-lg" href="https://github.com/angular-ui/bootstrap"><i class="icon-github"></i>Code on Github</a>
+                <button type="button" class="btn btn-outline-inverse btn-lg" ng-click="showDownloadModal()">
+                    <i class="glyphicon glyphicon-download-alt"></i> Download <small>(2.5.0)</small>
+                </button>
+                <- <button type="button" class="btn btn-outline-inverse btn-lg" ng-click="showBuildModal()"><i class="glyphicon glyphicon-wrench"></i> Create a Build</button> ->
+            </p>
+        </div>
+        <div class="social container">
+            <ul class="social-buttons">
+                <li>
+                    <iframe src="//ghbtns.com/github-btn.html?user=angular-ui&amp;repo=bootstrap&amp;type=watch&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+                </li>
+                <li>
+                    <iframe src="//ghbtns.com/github-btn.html?user=angular-ui&amp;repo=bootstrap&amp;type=fork&amp;count=true" allowtransparency="true" frameborder="0" scrolling="0" width="110" height="20"></iframe>
+                </li>
+                <li>
+                    <iframe id="twitter-widget-0" scrolling="no" frameborder="0" allowtransparency="true" class="twitter-share-button twitter-share-button-rendered twitter-tweet-button" title="Twitter Tweet Button" src="https://platform.twitter.com/widgets/tweet_button.a0ec3119d8db2bc5422f2144c89ad7a9.en.html#dnt=false&amp;hashtags=angularjs&amp;id=twitter-widget-0&amp;lang=en&amp;original_referer=https%3A%2F%2Fangular-ui.github.io%2Fbootstrap%2F&amp;size=m&amp;text=Angular%20directives%20for%20Bootstrap&amp;time=1489445019369&amp;type=share&amp;url=https%3A%2F%2Fangular-ui.github.io%2Fbootstrap%2F" style="position: static; visibility: visible; width: 61px; height: 20px;"></iframe>
+                    <script>!function (d, s, id) {
+                        var js, fjs = d.getElementsByTagName(s)[0];
+                        if (!d.getElementById(id)) {
+                            js = d.createElement(s);
+                            js.id = id;
+                            js.src = "//platform.twitter.com/widgets.js";
+                            fjs.parentNode.insertBefore(js, fjs);
+                        }
+                    }(document, "script", "twitter-wjs");</script>
+                </li>
+            </ul>
+        </div>
+    </header>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <section id="getting_started">
+                    <div class="page-header">
+                        <h1>Getting started</h1>
+                    </div>
+                    <h3>Angular 2</h3>
+                    <p>
+                        For Angular 2 support, check out
+                        <a href="https://ng-bootstrap.github.io" target="_blank">
+                          ng-bootstrap
+                        </a>, created by the UI Bootstrap team.
+                    </p>
+                    <h3>Dependencies</h3>
+                    <p>
+                        This repository contains a set of <strong>native AngularJS directives</strong> based on
+                        Bootstrap's markup and CSS. As a result no dependency on jQuery or Bootstrap's
+                        JavaScript is required. The <strong>only required dependencies</strong> are:
+                    </p>
+                    <ul>
+                        <li><a href="http://angularjs.org" target="_blank">AngularJS</a> (requires AngularJS 1.4.x or higher, tested with 1.6.1).
+                            0.14.3 is the last version of this library that supports AngularJS 1.3.x and
+                            0.12.0 is the last version that supports AngularJS 1.2.x.</li>
+                        <li><a href="http://angularjs.org" target="_blank">Angular-animate</a> (the version should match with your angular's, tested with 1.6.1) if you plan in using animations, you need to load angular-animate as well.</li>
+                        <li><a href="http://angularjs.org" target="_blank">Angular-touch</a> (the version should match with your angular's, tested with 1.6.1) if you plan in using swipe actions, you need to load angular-touch as well.</li>
+                        <li><a href="http://getbootstrap.com" target="_blank">Bootstrap CSS</a> (tested with version 3.3.7).
+                            This version of the library (2.5.0) works only with Bootstrap CSS in version 3.x.
+                            0.8.0 is the last version of this library that supports Bootstrap CSS in version 2.3.x.
+                        </li>
+                    </ul>
+                    <h3>Files to download</h3>
+                    <p>
+                        Build files for all directives are distributed in several flavours: minified for production usage, un-minified
+                        for development, with or without templates. All the options are described and can be
+                        <a href="https://github.com/angular-ui/bootstrap/tree/gh-pages">downloaded from here</a>. It should be noted that the <code>-tpls</code> files contain the templates bundled in JavaScript, while the regular version does not contain the bundled templates. For more information, check out the FAQ <a href="https://github.com/angular-ui/bootstrap/wiki/FAQ#full-explanation">here</a> and the README <a href="https://github.com/angular-ui/bootstrap/tree/gh-pages#build-files">here</a>.
+                    </p>
+                    <p>Alternativelly, if you are only interested in a subset of directives, you can
+                        <a ng-click="showBuildModal()">create your own build</a>.
+                    </p>
+                    <p>Whichever method you choose the good news that the overall size of a download is fairly small:
+                       122K minified for all directives with templates and 98K without (~31kB with gzip
+                        compression, with templates, and 28K gzipped without)</p>
+                    <h3>Installation</h3>
+                    <p>As soon as you've got all the files downloaded and included in your page you just need to declare
+                       a dependency on the <code>ui.bootstrap</code> <a href="http://docs.angularjs.org/guide/module">module</a>:<br>
+                       </p><pre><code>angular.module('myModule', ['ui.bootstrap']);</code></pre>
+                    <p></p>
+                    <p>If you are using UI Bootstrap in the CSP mode, e.g. in an extension, make sure you link to the <code>ui-bootstrap-csp.css</code> in your HTML manually.</p>
+                    <p>You can fork one of the plunkers from this page to see a working example of what is described here.</p>
+                    <h3>Migration to prefixes</h3>
+                    <p>Since version 0.14.0 we started to prefix all our components. If you are upgrading from ui-bootstrap 0.13.4 or earlier,
+                    check our <a href="https://github.com/angular-ui/bootstrap/wiki/Migration-guide-for-prefixes">migration guide</a>.</p>
+                    <h3>CSS</h3>
+                    <p>Original Bootstrap's CSS depends on empty <code>href</code> attributes to style cursors for several components (pagination, tabs etc.).
+                    But in AngularJS adding empty <code>href</code> attributes to link tags will cause unwanted route changes. This is why we need to remove empty <code>href</code> attributes from directive templates and as a result styling is not applied correctly. The remedy is simple, just add the following styling to your application: </p><pre><code>.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }</code></pre>
+                    <p></p>
+                    <h3>FAQ</h3>
+                    <p>Please check <a href="https://github.com/angular-ui/bootstrap/wiki/FAQ" target="_blank">our FAQ section</a> for common problems / solutions.</p>
+                    <h3>Reading the documentation</h3>
+                    <p>
+                        Each of the components provided in <code>ui-bootstrap</code> have documentation and interactive Plunker examples.
+                    </p>
+                    <p>
+                        For the directives, we list the different attributes with their default values. In addition to this, some settings have a badge on it:
+
+                        </p><ul>
+                            <li><i class="glyphicon glyphicon-eye-open"></i> - This setting has an angular $watch listener applied to it.</li>
+                            <li><small class="badge">B</small> - This setting is a boolean. It doesn't need a parameter.</li>
+                            <li><small class="badge">C</small> - This setting can be configured globally in a constant service*.</li>
+                            <li><small class="badge">$</small> - This setting expects an angular expression instead of a literal string. If the expression support a boolean / integer, you can pass it directly.</li>
+                            <li><small class="badge">readonly</small> - This setting is readonly.</li>
+                        </ul>
+                    <p></p>
+                    <p>
+                        For the services (you will recognize them with the <code>$</code> prefix), we list all the possible parameters you can pass to them and their default values if any.
+                    </p>
+                    <p>
+                        * Some directives have a config service that follows the next pattern: <code>uibDirectiveConfig</code>. The service's settings use camel case. The services can be configured in a <code>.config</code> function for example.
+                    </p>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+-->
+
+<!--
+<script type="text/ng-template" id="partials/report/filters/flags">
+    <label class="col-lg-3 col-form-label">Show</label>
+    <div class="col-lg-3">
+        <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('dynamic') }" style="width: 100%;" ng-click="table.toggle('dynamic')">Percentuale di incidenza</button>
+    </div>
+    <div class="col-lg-3">
+        <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('chart') }" style="width: 100%;" ng-click="table.toggle('chart') && chart.group(table.rows)">Mostra grafico</button>
+    </div>
+    <div class="col-lg-3">
+        <button type="button" class="btn btn-xs btn-outline-foreground" ng-class="{ 'btn-primary' : table.has('table') }" style="width: 100%;" ng-click="table.toggle('table')">Show report</button>
+    </div>
+</script>
+
+<script type="text/ng-template" id="partials/pop/project">
+    <div class="container">
+        <div class="container-fluid">
+            <section class="container-fluid shadow section-bordered margin-bottom-xs-10" style="background: white;">
+                <h6 class="headline foreground light-60">
+                    <span>Project #{{item.project.id}}</span> <i class="icon-close float-right" ng-click="onClose()"></i>
+                </h6>
+                <table class="atable-responsive atable-responsive-default atable-dynamic">
+                    <thead>
+                        <tr>
+                            <th class="th-family"><span>&nbsp;</span></th>
+                            <th class="th-text"><span>&nbsp;</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><span>Cliente</span></td>
+                            <td><span title="{{item.customer.name}}" ng-bind="item.customer.name"></span></td>
+                        </tr>
+                        <tr>
+                            <td><span>Titolo</span></td>
+                            <td><span title="{{item.project.name}}" ng-bind="item.project.name"></span></td>
+                        </tr>
+                        <tr>
+                            <td><span>Commerciale</span></td>
+                            <td><span title="{{item.agent.name}}" ng-bind="item.agent.name"></span></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="atable-responsive atable-responsive-default atable-dynamic" ng-if="!state.isBusy">
+                    <thead>
+                        <tr>
+                            <th class="th-family"><span title="Attività">Attività</span></th>
+                            <th class="th-family"><span title="Fornitore">Fornitore</span></th>
+                            <th class="th-date text-xs-right aggregate"><span title="Ore Budget Iniziale">Ore Budget Iniziale</span></th>
+                            <th class="th-date text-xs-right aggregate"><span title="Ore Budget">Ore Budget</span></th>
+                            <th class="th-date text-xs-right aggregate"><span title="Ore Fatte">Ore Fatte</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="row in rows track by $index">
+                            <td><label>Attività</label><span title="{{row.activity.name}}" ng-bind="row.activity.name"></span></td>
+                            <td><label>Fornitore</label><span title="{{row.area.name}}" ng-bind="row.area.name"></span></td>
+                            <td class="aggregate"><label>Ore Budget Iniziale</label>
+                                <span class="text-xs-right" title="{{row.budgetInitial | customNumber : 0 : ' H'}}" ng-bind="row.budget | customNumber : 0 : ' H'"></span>
+                            </td>
+                            <td class="aggregate"><label>Ore Budget</label>
+                                <span class="text-xs-right" title="{{row.budget | customNumber : 0 : ' H'}}" ng-bind="row.budget | customNumber : 0 : ' H'"></span>
+                            </td>
+                            <td class="aggregate"><label>Ore Fatte</label>
+                                <span class="text-xs-right" title="{{row.hoursDone | customNumber : 0 : ' H'}}" ng-bind="row.hoursDone | customNumber : 0 : ' H'"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody ng-if="!state.isBusy && !rows.length">
+                        <tr>
+                            <td class="text-xs-center" colspan="5">
+                                <p>nessun risultato</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tfoot ng-if="!state.isBusy && rows.length">
+                        <tr class="row-recap">
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td class="aggregate"><label>Ore Budget Iniziale</label><span class="tag text-xs-right" ng-bind="getBudgetInitial() | customNumber : 0 : ' H'"></span></td>
+                            <td class="aggregate"><label>Ore Budget</label><span class="tag text-xs-right" ng-bind="getBudget() | customNumber : 0 : ' H'"></span></td>
+                            <td class="aggregate"><label>Ore Fatte</label><span class="tag text-xs-right" ng-bind="getHoursDone() | customNumber : 0 : ' H'"></span></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <div class="loading" ng-if="state.isBusy"></div>
+                <div ng-include="'partials/errors'"></div>
+            </section>
+        </div>
+    </div>
+</script>
+
+<script type="text/ng-template" id="partials/report/chart">
+    <canvas id="line" class="chart {{chart.type}}" chart-data="chart.data" chart-labels="chart.labels" chart-series="chart.series" chart-options="chart.options" chart-dataset-override="chart.datasetOverride" chart-click="chart.onClick"></canvas>
+</script>
+-->
+
 </html>
