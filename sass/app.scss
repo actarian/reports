@@ -29,7 +29,6 @@ th {
     }
 }
 
-
 /*
 .atable-dynamic {
     th[draggable-item] {
@@ -44,6 +43,13 @@ th {
     $accent: #0002f3;
     $negative: #ffffff;
     $hilight: #FFEB3B;
+    .atable-dynamic {
+        tbody:nth-child(odd) {
+            td {
+                background-color: #f0f0f0;
+            }
+        }
+    }
     section {
         background: $negative;
         border: 4px solid $accent;
@@ -201,14 +207,13 @@ th {
         padding-left: 1px;
     }
     td {
-        border-bottom: 1px solid $accent;
-        /*
-        span {
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        */
+        // border-bottom: 1px solid $accent;
+        border: none;
+        //span {
+        //    max-width: 200px;
+        //    overflow: hidden;
+        //    text-overflow: ellipsis;
+        //}
     }
     td,
     th {
