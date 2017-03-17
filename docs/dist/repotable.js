@@ -2534,6 +2534,12 @@ module.factory('Table', ['$parse', '$filter', 'Fields', 'fieldTypes', 'fieldTota
         has: function (key) {
             return (this.fields ? this.fields.show[key] : null);
         },
+        set: function (key, value) {
+            if (this.fields) {
+                this.fields.show[key] = value;
+            }
+            return this;
+        },
         resetFilters: function () {
             var table = this;
             angular.forEach(table.fields, function (field, key) {
